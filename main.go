@@ -95,7 +95,7 @@ func main() {
 					log.Println(err)
 				}
 			}
-			cmd = exec.Command("go",cmds... )
+			cmd = exec.Command(cmds[0], cmds[1:]... )
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			cmd.Start()

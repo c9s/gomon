@@ -13,6 +13,6 @@ Usage
 -----
 
     gomon [dir] -- [cmd]
-    gomon src -- run -x server.go # execute go run -x server.go
-    gomon src -- build -x package # execute go build -x package
+    gomon src -- go run -x server.go # execute go run -x server.go
+    gomon src -- go obuild -x package # execute go build -x package
 
