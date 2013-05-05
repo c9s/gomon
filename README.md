@@ -4,6 +4,11 @@ gomon
 go source file monitor, which restarts/rebuilds your go package automatically
 while you are changing it.
 
+Install
+-------
+
+    go get -u github.com/c9s/gomon
+
 Usage
 -----
 
