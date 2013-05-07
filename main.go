@@ -54,6 +54,10 @@ func main() {
 			cmds = append(cmds, a)
 		}
 	}
+	if len(cmds) == 0 {
+		fmt.Println("No command specified")
+		os.Exit(2)
+	}
 
 	fmt.Println( "Watching" ,  dirs , "for" , cmds )
 
