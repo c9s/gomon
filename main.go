@@ -21,7 +21,7 @@ var goCommands = map[string][]string{
 type Command []string
 
 type CommandSet struct {
-	cmds []Command
+	Commands []Command
 }
 
 func main() {
@@ -31,6 +31,8 @@ func main() {
 	var installFlag = flag.Bool("i", false, "Run `go install`")
 	var fmtFlag = flag.Bool("f", false, "Run `go fmt`")
 	var runFlag = flag.Bool("r", false, "Run `go run`")
+	var allFlag = flag.Bool("a", false, "Run build, test, fmt and install")
+
 	var versionFlag = flag.Bool("v", false, "Version")
 	var xFlag = flag.Bool("x", false, "Show verbose command")
 
@@ -58,7 +60,7 @@ func main() {
 	}
 
 	var dirs = []string{}
-	var cmds = []string{}
+	var cmd = []string{}
 
 	if len(args) > 0 {
 		var hasDash bool = false
@@ -77,7 +79,7 @@ func main() {
 				if takeDir {
 					dirs = append(dirs, a)
 				} else {
-					cmds = append(cmds, a)
+					cmd = append(cmd, a)
 				}
 			}
 		} else {
@@ -92,32 +94,32 @@ func main() {
 			if arePaths {
 				dirs = args
 			} else {
-				cmds = args
+				cmd = args
 			}
 		}
 	}
 
-	if len(cmds) == 0 {
+	if len(cmd) == 0 {
 		if *testFlag {
-			cmds = goCommands["test"]
+			cmd = goCommands["test"]
 		} else if *buildFlag {
-			cmds = goCommands["build"]
+			cmd = goCommands["build"]
 		} else if *installFlag {
-			cmds = goCommands["install"]
+			cmd = goCommands["install"]
 		} else if *fmtFlag {
-			cmds = goCommands["fmt"]
+			cmd = goCommands["fmt"]
 		} else if *runFlag {
-			cmds = goCommands["run"]
+			cmd = goCommands["run"]
 		} else {
 			// default behavior
-			cmds = goCommands["build"]
+			cmd = goCommands["build"]
 		}
-		if *xFlag && len(cmds) > 0 {
-			cmds = append(cmds, "-x")
+		if *xFlag && len(cmd) > 0 {
+			cmd = append(cmd, "-x")
 		}
 	}
 
-	if len(cmds) == 0 {
+	if len(cmd) == 0 {
 		fmt.Println("No command specified")
 		os.Exit(2)
 	}
@@ -131,7 +133,7 @@ func main() {
 		dirs = []string{cwd}
 	}
 
-	fmt.Println("Watching", dirs, "for", cmds)
+	fmt.Println("Watching", dirs, "for", cmd)
 
 	watcher, err := fsnotify.NewWatcher()
 
@@ -203,7 +205,7 @@ func main() {
 					log.Println(err)
 				}
 			}
-			cmd = exec.Command(cmds[0], cmds[1:]...)
+			cmd = exec.Command(cmd[0], cmd[1:]...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			go runCommand(cmd)
