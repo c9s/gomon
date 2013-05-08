@@ -31,15 +31,22 @@ func Subfolders(path string) (paths []string) {
 }
 
 func main() {
-	flag.Parse()
+	var helpFlag = flag.Bool("h",false,"help")
 	var buildFlag = flag.Bool("b",false,"build")
 	var testFlag = flag.Bool("t",false,"test")
+	flag.Parse()
 	args := flag.Args()
 
 	var dirs = []string{}
 	var cmds = []string{}
 
-	if *testFlag {
+	if *helpFlag {
+		fmt.Println("Usage: gomon [options] [dir] [-- command]")
+		fmt.Println("   -b build")
+		fmt.Println("   -t test")
+		fmt.Println("   -h help")
+		os.Exit(0)
+	} else if *testFlag {
 		cmds = []string{ "go", "test" }
 	} else if *buildFlag {
 		cmds = []string{ "go", "build" }
