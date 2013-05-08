@@ -8,6 +8,8 @@ import "os"
 import "os/exec"
 import "regexp"
 
+var versionStr = "0.1.0"
+
 var goCommandSet = map[string][]string{
 	"test":    []string{"go", "test"},
 	"install": []string{"go", "install"},
@@ -19,6 +21,7 @@ func main() {
 	var buildFlag = flag.Bool("b", true, "build, default behavior")
 	var testFlag = flag.Bool("t", false, "test")
 	var installFlag = flag.Bool("i", false, "install")
+	var versionFlag = flag.Bool("v", false, "version")
 	var xFlag = flag.Bool("x", false, "show verbose command")
 
 	flag.Parse()
@@ -31,6 +34,10 @@ func main() {
 		fmt.Println("   -i install")
 		fmt.Println("   -x show verbose command")
 		fmt.Println("   -h help")
+		os.Exit(0)
+	}
+	if *versionFlag {
+		fmt.Printf("gomon %s\n", versionStr)
 		os.Exit(0)
 	}
 
