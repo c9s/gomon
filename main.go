@@ -35,6 +35,7 @@ func main() {
 	var buildFlag = flag.Bool("b", true, "build, default behavior")
 	var testFlag = flag.Bool("t", false, "test")
 	var installFlag = flag.Bool("i", false, "install")
+	var xFlag = flag.Bool("x", false, "show verbose command")
 
 	flag.Parse()
 	args := flag.Args()
@@ -44,6 +45,7 @@ func main() {
 		fmt.Println("   -b build")
 		fmt.Println("   -t test")
 		fmt.Println("   -i install")
+		fmt.Println("   -x show verbose command")
 		fmt.Println("   -h help")
 		os.Exit(0)
 	}
@@ -71,6 +73,9 @@ func main() {
 			cmds = []string{"go", "build"}
 		} else if *installFlag {
 			cmds = []string{"go", "install"}
+		}
+		if *xFlag && len(cmds) > 0 {
+			cmds = append(cmds, "-x")
 		}
 	}
 
