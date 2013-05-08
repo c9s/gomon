@@ -31,9 +31,9 @@ func Subfolders(path string) (paths []string) {
 }
 
 func main() {
-	var helpFlag = flag.Bool("h",false,"help")
-	var buildFlag = flag.Bool("b",false,"build")
-	var testFlag = flag.Bool("t",false,"test")
+	var helpFlag = flag.Bool("h", false, "help")
+	var buildFlag = flag.Bool("b", false, "build")
+	var testFlag = flag.Bool("t", false, "test")
 	flag.Parse()
 	args := flag.Args()
 
@@ -47,9 +47,9 @@ func main() {
 		fmt.Println("   -h help")
 		os.Exit(0)
 	} else if *testFlag {
-		cmds = []string{ "go", "test" }
+		cmds = []string{"go", "test"}
 	} else if *buildFlag {
-		cmds = []string{ "go", "build" }
+		cmds = []string{"go", "build"}
 	} else {
 		var takeDir = true
 		for _, a := range args {
