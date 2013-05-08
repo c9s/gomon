@@ -53,11 +53,11 @@ func main() {
 
 	if len(cmds) == 0 {
 		if *testFlag {
-			cmds = []string{"go", "test"}
+			cmds = goCommandSet["test"]
 		} else if *buildFlag {
-			cmds = []string{"go", "build"}
+			cmds = goCommandSet["build"]
 		} else if *installFlag {
-			cmds = []string{"go", "install"}
+			cmds = goCommandSet["install"]
 		}
 		if *xFlag && len(cmds) > 0 {
 			cmds = append(cmds, "-x")
