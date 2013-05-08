@@ -14,6 +14,7 @@ var goCommandSet = map[string][]string{
 	"test":    []string{"go", "test"},
 	"install": []string{"go", "install"},
 	"build":   []string{"go", "build"},
+	"fmt":     []string{"go", "fmt"},
 }
 
 func main() {
@@ -21,6 +22,7 @@ func main() {
 	var buildFlag = flag.Bool("b", true, "build, default behavior")
 	var testFlag = flag.Bool("t", false, "test")
 	var installFlag = flag.Bool("i", false, "install")
+	var fmtFlag = flag.Bool("f", false, "fmt")
 	var versionFlag = flag.Bool("v", false, "version")
 	var xFlag = flag.Bool("x", false, "show verbose command")
 	var gntpServer = flag.String("gntp", "127.0.0.1:23053", "use Growler")
@@ -66,6 +68,8 @@ func main() {
 			cmds = goCommandSet["build"]
 		} else if *installFlag {
 			cmds = goCommandSet["install"]
+		} else if *fmtFlag {
+			cmds = goCommandSet["fmt"]
 		}
 		if *xFlag && len(cmds) > 0 {
 			cmds = append(cmds, "-x")
