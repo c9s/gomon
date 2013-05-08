@@ -26,7 +26,6 @@ func main() {
 	var fmtFlag = flag.Bool("f", false, "Run `go fmt`")
 	var runFlag = flag.Bool("r", false, "Run `go run`")
 	var versionFlag = flag.Bool("v", false, "Version")
-
 	var xFlag = flag.Bool("x", false, "Show verbose command")
 
 	var useGrowl = flag.Bool("growl", false, "Use Growler")
@@ -58,7 +57,7 @@ func main() {
 	var takeDir = true
 	for _, a := range args {
 		var exists, _ = FileExists(a)
-		if a == "--" || (takeDir && !exists) {
+		if takeDir && (a == "--" || !exists) {
 			takeDir = false
 			continue
 		}
