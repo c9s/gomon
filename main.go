@@ -32,23 +32,32 @@ func Subfolders(path string) (paths []string) {
 
 func main() {
 	flag.Parse()
+	var buildFlag = flag.Bool("b",false,"build")
+	var testFlag = flag.Bool("t",false,"test")
 	args := flag.Args()
 
 	var dirs = []string{}
 	var cmds = []string{}
 
-	var takeDir = true
-	for _, a := range args {
-		if a == "--" {
-			takeDir = false
-			continue
-		}
-		if takeDir {
-			dirs = append(dirs, a)
-		} else {
-			cmds = append(cmds, a)
+	if *testFlag {
+		cmds = []string{ "go", "test" }
+	} else if *buildFlag {
+		cmds = []string{ "go", "build" }
+	} else {
+		var takeDir = true
+		for _, a := range args {
+			if a == "--" {
+				takeDir = false
+				continue
+			}
+			if takeDir {
+				dirs = append(dirs, a)
+			} else {
+				cmds = append(cmds, a)
+			}
 		}
 	}
+
 	if len(cmds) == 0 {
 		fmt.Println("No command specified")
 		os.Exit(2)
