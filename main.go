@@ -47,7 +47,7 @@ func main() {
 	var takeDir = true
 	for _, a := range args {
 		var exists, _ = FileExists(a)
-		if a == "--" || !exists {
+		if a == "--" || (takeDir && !exists) {
 			takeDir = false
 			continue
 		}
