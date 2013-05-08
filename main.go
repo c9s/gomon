@@ -108,7 +108,7 @@ func main() {
 	for {
 		select {
 		case e := <-watcher.Event:
-			matched, err := regexp.MatchString("\\.go$", e.Name)
+			matched, err := regexp.MatchString("\\.(go|c)$", e.Name)
 			if err != nil {
 				log.Println(err)
 			}
