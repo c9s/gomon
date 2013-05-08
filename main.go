@@ -32,13 +32,10 @@ func Subfolders(path string) (paths []string) {
 
 func main() {
 	var helpFlag = flag.Bool("h", false, "help")
-	var buildFlag = flag.Bool("b", false, "build")
+	var buildFlag = flag.Bool("b", true, "build, default behavior")
 	var testFlag = flag.Bool("t", false, "test")
 	flag.Parse()
 	args := flag.Args()
-
-	var dirs = []string{}
-	var cmds = []string{}
 
 	if *helpFlag {
 		fmt.Println("Usage: gomon [options] [dir] [-- command]")
@@ -46,28 +43,44 @@ func main() {
 		fmt.Println("   -t test")
 		fmt.Println("   -h help")
 		os.Exit(0)
-	} else if *testFlag {
-		cmds = []string{"go", "test"}
-	} else if *buildFlag {
-		cmds = []string{"go", "build"}
-	} else {
-		var takeDir = true
-		for _, a := range args {
-			if a == "--" {
-				takeDir = false
-				continue
-			}
-			if takeDir {
-				dirs = append(dirs, a)
-			} else {
-				cmds = append(cmds, a)
-			}
+	}
+
+	var dirs = []string{}
+	var cmds = []string{}
+
+	var takeDir = true
+	for _, a := range args {
+		if a == "--" {
+			takeDir = false
+			continue
+		}
+		if takeDir {
+			dirs = append(dirs, a)
+		} else {
+			cmds = append(cmds, a)
+		}
+	}
+
+	if len(cmds) == 0 {
+		if *testFlag {
+			cmds = []string{"go", "test"}
+		} else if *buildFlag {
+			cmds = []string{"go", "build"}
 		}
 	}
 
 	if len(cmds) == 0 {
 		fmt.Println("No command specified")
 		os.Exit(2)
+	}
+
+	if len(dirs) == 0 {
+		var cwd, err = os.Getwd()
+		if err != nil {
+			fmt.Println(err)
+			os.Exit(1)
+		}
+		dirs = []string{cwd}
 	}
 
 	fmt.Println("Watching", dirs, "for", cmds)
