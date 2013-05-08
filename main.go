@@ -59,6 +59,9 @@ func main() {
 		var exists, _ = FileExists(a)
 		if takeDir && (a == "--" || !exists) {
 			takeDir = false
+			if !exists {
+				cmds = append(cmds, a)
+			}
 			continue
 		}
 		if takeDir {
