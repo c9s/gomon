@@ -34,6 +34,8 @@ func main() {
 	var helpFlag = flag.Bool("h", false, "help")
 	var buildFlag = flag.Bool("b", true, "build, default behavior")
 	var testFlag = flag.Bool("t", false, "test")
+	var installFlag = flag.Bool("i", false, "install")
+
 	flag.Parse()
 	args := flag.Args()
 
@@ -41,6 +43,7 @@ func main() {
 		fmt.Println("Usage: gomon [options] [dir] [-- command]")
 		fmt.Println("   -b build")
 		fmt.Println("   -t test")
+		fmt.Println("   -i install")
 		fmt.Println("   -h help")
 		os.Exit(0)
 	}
@@ -66,6 +69,8 @@ func main() {
 			cmds = []string{"go", "test"}
 		} else if *buildFlag {
 			cmds = []string{"go", "build"}
+		} else if *installFlag {
+			cmds = []string{"go", "install"}
 		}
 	}
 
