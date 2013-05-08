@@ -16,7 +16,6 @@ Usage
 
     gomon     # watch current directory and build the package (the default behavior)
 
-
 Monitoring Current Directory And Build Automatically:
 
     gomon -b
@@ -28,6 +27,10 @@ Monitoring Current Directory And Test Automatically:
 Monitoring Directory And Build Automatically:
 
     gomon path/to/package -b
+
+Monitoring Directory And Build Automatically With Verbose Messages:
+
+    gomon path/to/package -b -x
 
 Monitoring With Custom Command:
 
