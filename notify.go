@@ -13,14 +13,10 @@ import (
 //	cmd.Stderr = io.MultiWriter(os.Stderr, &buf)
 //	err := cmd.Run()
 
-func createNotification(server *string) *gntp.Client {
+func createNotification(server string) *gntp.Client {
 	growl := gntp.NewClient()
 	// defualt GNTP Server
-	if server != nil {
-		growl.Server = *server
-	} else {
-		growl.Server = "127.0.0.1:23053"
-	}
+	growl.Server = server
 	growl.AppName = "gomon"
 	growl.Register([]gntp.Notification{
 		gntp.Notification{
@@ -34,7 +30,7 @@ func createNotification(server *string) *gntp.Client {
 	return growl
 }
 
-func notifyFixed(server *string, text, callback string) {
+func notifyFixed(server string, text, callback string) {
 	growl := createNotification(server)
 	growl.Notify(&gntp.Message{
 		Event:    "success",
@@ -44,7 +40,7 @@ func notifyFixed(server *string, text, callback string) {
 	})
 }
 
-func notifyFail(server *string, text, callback string) {
+func notifyFail(server string, text, callback string) {
 	growl := createNotification(server)
 	growl.Notify(&gntp.Message{
 		Event:    "failed",

@@ -31,24 +31,22 @@ func main() {
 	var installFlag = flag.Bool("i", false, "Run `go install`")
 	var fmtFlag = flag.Bool("f", false, "Run `go fmt`")
 	var runFlag = flag.Bool("r", false, "Run `go run`")
-	var allFlag = flag.Bool("a", false, "Run build, test, fmt and install")
+	// var allFlag = flag.Bool("a", false, "Run build, test, fmt and install")
 
 	var versionFlag = flag.Bool("v", false, "Version")
 	var xFlag = flag.Bool("x", false, "Show verbose command")
 
 	var useGrowl = flag.Bool("growl", false, "Use Growler")
-	var gntpServer = flag.String("gntp", "", "The GNTP DSN")
-	if *useGrowl && *gntpServer == "" {
-		*gntpServer = "127.0.0.1:23053"
-	}
+	var gntpServer = flag.String("gntp", "127.0.0.1:23053", "The GNTP DSN")
 
 	flag.Parse()
-	args := flag.Args()
 
+	var args = flag.Args()
 	if *helpFlag {
 		fmt.Println("Usage: gomon [options] [dir] [-- command]")
 		fmt.Println("   -b build")
 		fmt.Println("   -t test")
+		fmt.Println("   -r run")
 		fmt.Println("   -i install")
 		fmt.Println("   -x show verbose command")
 		fmt.Println("   -h help")
@@ -60,7 +58,10 @@ func main() {
 	}
 
 	var dirs = []string{}
-	var cmd = []string{}
+	var cmds = CommandSet{}
+	var cmd = Command{}
+
+	_ = cmds
 
 	if len(args) > 0 {
 		var hasDash bool = false
@@ -152,24 +153,24 @@ func main() {
 	}
 
 	var wasFailed bool = false
-	var cmd *exec.Cmd
+	var task *exec.Cmd
 
-	runCommand := func(cmd *exec.Cmd) {
+	runCommand := func(task *exec.Cmd) {
 		var err error
-		err = cmd.Start()
+		err = task.Start()
 		if err != nil {
 			log.Println(err)
 			if *useGrowl {
-				notifyFail(gntpServer, err.Error(), "")
+				notifyFail(*gntpServer, err.Error(), "")
 			}
 			wasFailed = true
 			return
 		}
-		err = cmd.Wait()
+		err = task.Wait()
 		if err != nil {
 			log.Println(err)
 			if *useGrowl {
-				notifyFail(gntpServer, err.Error(), "")
+				notifyFail(*gntpServer, err.Error(), "")
 			}
 			wasFailed = true
 			return
@@ -179,7 +180,7 @@ func main() {
 		if wasFailed {
 			wasFailed = false
 			if *useGrowl {
-				notifyFixed(gntpServer, "Fixed", "")
+				notifyFixed(*gntpServer, "Fixed", "")
 			}
 			fmt.Println("Congratulations! It's fixed!")
 		}
@@ -199,16 +200,16 @@ func main() {
 
 			log.Println("Event:", e)
 
-			if cmd != nil && cmd.ProcessState != nil && !cmd.ProcessState.Exited() {
-				err := cmd.Process.Kill()
+			if task != nil && task.ProcessState != nil && !task.ProcessState.Exited() {
+				err := task.Process.Kill()
 				if err != nil {
 					log.Println(err)
 				}
 			}
-			cmd = exec.Command(cmd[0], cmd[1:]...)
-			cmd.Stdout = os.Stdout
-			cmd.Stderr = os.Stderr
-			go runCommand(cmd)
+			task = exec.Command(cmd[0], cmd[1:]...)
+			task.Stdout = os.Stdout
+			task.Stderr = os.Stderr
+			go runCommand(task)
 
 		case err := <-watcher.Error:
 			log.Println("Error:", err)
