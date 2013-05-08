@@ -12,6 +12,10 @@ func FileExists(path string) (bool, error) {
 	if err != nil {
 		return false, err
 	}
+	err = file.Close()
+	if err != nil {
+		return false, err
+	}
 	return true, nil
 }
 
@@ -25,6 +29,10 @@ func DirExists(path string) (bool, error) {
 		return false, err
 	}
 	stat, err := file.Stat()
+	if err != nil {
+		return false, err
+	}
+	err = file.Close()
 	if err != nil {
 		return false, err
 	}
