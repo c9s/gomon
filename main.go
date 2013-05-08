@@ -20,7 +20,7 @@ var goCommandSet = map[string][]string{
 
 func main() {
 	var helpFlag = flag.Bool("h", false, "Show Help")
-	var buildFlag = flag.Bool("b", true, "Run `go build`, the default behavior")
+	var buildFlag = flag.Bool("b", false, "Run `go build`, the default behavior")
 	var testFlag = flag.Bool("t", false, "Run `go test`")
 	var installFlag = flag.Bool("i", false, "Run `go install`")
 	var fmtFlag = flag.Bool("f", false, "Run `go fmt`")
@@ -80,6 +80,9 @@ func main() {
 			cmds = goCommandSet["fmt"]
 		} else if *runFlag {
 			cmds = goCommandSet["run"]
+		} else {
+			// default behavior
+			cmds = goCommandSet["build"]
 		}
 		if *xFlag && len(cmds) > 0 {
 			cmds = append(cmds, "-x")
