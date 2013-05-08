@@ -1,4 +1,5 @@
 package main
+
 import "github.com/howeyc/fsnotify"
 import "log"
 import "flag"
@@ -8,31 +9,25 @@ import "os"
 import "os/exec"
 import "regexp"
 
-
-
-
-
-
-
 func Subfolders(path string) (paths []string) {
-    filepath.Walk(path, func(newPath string, info os.FileInfo, err error) error {
-        if err != nil {
-            return err
-        }
+	filepath.Walk(path, func(newPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
 
-        if info.IsDir() {
-            name := info.Name()
-            // skip folders that begin with a dot
-            hidden := filepath.HasPrefix(name, ".") && name != "." && name != ".."
-            if hidden {
-                return filepath.SkipDir
-            } else {
-                paths = append(paths, newPath)
-            }
-        }
-        return nil
-    })
-    return paths
+		if info.IsDir() {
+			name := info.Name()
+			// skip folders that begin with a dot
+			hidden := filepath.HasPrefix(name, ".") && name != "." && name != ".."
+			if hidden {
+				return filepath.SkipDir
+			} else {
+				paths = append(paths, newPath)
+			}
+		}
+		return nil
+	})
+	return paths
 }
 
 func main() {
@@ -59,13 +54,13 @@ func main() {
 		os.Exit(2)
 	}
 
-	fmt.Println( "Watching" ,  dirs , "for" , cmds )
+	fmt.Println("Watching", dirs, "for", cmds)
 
 	watcher, err := fsnotify.NewWatcher()
 
-    if err != nil {
-        log.Fatal(err)
-    }
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	for _, dir := range dirs {
 		subfolders := Subfolders(dir)
@@ -87,7 +82,7 @@ func main() {
 				log.Println(err)
 			}
 
-			if ! matched {
+			if !matched {
 				continue
 			}
 
@@ -99,7 +94,7 @@ func main() {
 					log.Println(err)
 				}
 			}
-			cmd = exec.Command(cmds[0], cmds[1:]... )
+			cmd = exec.Command(cmds[0], cmds[1:]...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
 			cmd.Start()
@@ -108,5 +103,5 @@ func main() {
 		}
 	}
 
-    watcher.Close()
+	watcher.Close()
 }
