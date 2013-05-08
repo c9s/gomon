@@ -13,6 +13,24 @@ Usage
 -----
 
     gomon [dir] -- [cmd]
+
+    gomon     # watch current directory and build the package (the default behavior)
+
+
+Monitoring Current Directory And Build Automatically:
+
+    gomon -b
+
+Monitoring Current Directory And Test Automatically:
+
+    gomon -t
+
+Monitoring Directory And Build Automatically:
+
+    gomon path/to/package -b
+
+Monitoring With Custom Command:
+
     gomon src -- go run -x server.go # execute go run -x server.go
-    gomon src -- go obuild -x package # execute go build -x package
+    gomon src -- go build -x package # execute go build -x package
 
