@@ -23,6 +23,7 @@ func main() {
 	var installFlag = flag.Bool("i", false, "install")
 	var versionFlag = flag.Bool("v", false, "version")
 	var xFlag = flag.Bool("x", false, "show verbose command")
+	var gntpServer = flag.String("gntp", "127.0.0.1:23053", "use Growler")
 
 	flag.Parse()
 	args := flag.Args()
@@ -105,6 +106,22 @@ func main() {
 
 	var cmd *exec.Cmd
 
+	runCommand := func(cmd *exec.Cmd) {
+		var err error
+		err = cmd.Start()
+		if err != nil {
+			log.Println(err)
+			notifyFail(err.Error(), "", gntpServer)
+			return
+		}
+		err = cmd.Wait()
+		if err != nil {
+			log.Println(err)
+			notifyFail(err.Error(), "", gntpServer)
+			return
+		}
+	}
+
 	for {
 		select {
 		case e := <-watcher.Event:
@@ -128,7 +145,8 @@ func main() {
 			cmd = exec.Command(cmds[0], cmds[1:]...)
 			cmd.Stdout = os.Stdout
 			cmd.Stderr = os.Stderr
-			cmd.Start()
+			go runCommand(cmd)
+
 		case err := <-watcher.Error:
 			log.Println("Error:", err)
 		}
