@@ -54,20 +54,40 @@ func main() {
 	var dirs = []string{}
 	var cmds = []string{}
 
-	var takeDir = true
-	for _, a := range args {
-		var exists, _ = FileExists(a)
-		if takeDir && (a == "--" || !exists) {
-			takeDir = false
-			if !exists {
-				cmds = append(cmds, a)
+	if len(args) > 0 {
+		var hasDash bool = false
+		for _, a := range args {
+			if a == "--" {
+				hasDash = true
 			}
-			continue
 		}
-		if takeDir {
-			dirs = append(dirs, a)
+		if hasDash {
+			var takeDir = true
+			for _, a := range args {
+				if takeDir && a == "--" {
+					takeDir = false
+					continue
+				}
+				if takeDir {
+					dirs = append(dirs, a)
+				} else {
+					cmds = append(cmds, a)
+				}
+			}
 		} else {
-			cmds = append(cmds, a)
+			// detect the argument (as path or command)
+			var arePaths bool = true
+			for _, a := range args {
+				var exists, _ = FileExists(a)
+				if !exists {
+					arePaths = false
+				}
+			}
+			if arePaths {
+				dirs = args
+			} else {
+				cmds = args
+			}
 		}
 	}
 
