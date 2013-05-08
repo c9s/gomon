@@ -10,12 +10,18 @@ import "regexp"
 
 var versionStr = "0.1.0"
 
-var goCommandSet = map[string][]string{
+var goCommands = map[string][]string{
 	"test":    []string{"go", "test"},
 	"install": []string{"go", "install"},
 	"build":   []string{"go", "build"},
 	"fmt":     []string{"go", "fmt"},
 	"run":     []string{"go", "run"},
+}
+
+type Command []string
+
+type CommandSet struct {
+	cmds []Command
 }
 
 func main() {
@@ -93,18 +99,18 @@ func main() {
 
 	if len(cmds) == 0 {
 		if *testFlag {
-			cmds = goCommandSet["test"]
+			cmds = goCommands["test"]
 		} else if *buildFlag {
-			cmds = goCommandSet["build"]
+			cmds = goCommands["build"]
 		} else if *installFlag {
-			cmds = goCommandSet["install"]
+			cmds = goCommands["install"]
 		} else if *fmtFlag {
-			cmds = goCommandSet["fmt"]
+			cmds = goCommands["fmt"]
 		} else if *runFlag {
-			cmds = goCommandSet["run"]
+			cmds = goCommands["run"]
 		} else {
 			// default behavior
-			cmds = goCommandSet["build"]
+			cmds = goCommands["build"]
 		}
 		if *xFlag && len(cmds) > 0 {
 			cmds = append(cmds, "-x")
