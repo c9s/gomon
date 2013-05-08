@@ -9,6 +9,18 @@ import "os"
 import "os/exec"
 import "regexp"
 
+func FileExists(path string) (bool, error) {
+	file, err := os.Open(path) // For read access.
+	if err != nil {
+		return false, err
+	}
+	_, err = file.Stat()
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func Subfolders(path string) (paths []string) {
 	filepath.Walk(path, func(newPath string, info os.FileInfo, err error) error {
 		if err != nil {
@@ -55,7 +67,8 @@ func main() {
 
 	var takeDir = true
 	for _, a := range args {
-		if a == "--" {
+		var exists, _ = FileExists(a)
+		if a == "--" || !exists {
 			takeDir = false
 			continue
 		}
