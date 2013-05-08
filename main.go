@@ -48,8 +48,10 @@ func main() {
 		os.Exit(0)
 	} else if *testFlag {
 		cmds = []string{"go", "test"}
+		dirs = []string{ "." }
 	} else if *buildFlag {
 		cmds = []string{"go", "build"}
+		dirs = []string{ "." }
 	} else {
 		var takeDir = true
 		for _, a := range args {
