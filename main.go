@@ -8,6 +8,12 @@ import "os"
 import "os/exec"
 import "regexp"
 
+var goCommandSet = map[string][]string{
+	"test":    []string{"go", "test"},
+	"install": []string{"go", "install"},
+	"build":   []string{"go", "build"},
+}
+
 func main() {
 	var helpFlag = flag.Bool("h", false, "help")
 	var buildFlag = flag.Bool("b", true, "build, default behavior")
