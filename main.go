@@ -18,14 +18,19 @@ var goCommandSet = map[string][]string{
 }
 
 func main() {
-	var helpFlag = flag.Bool("h", false, "help")
-	var buildFlag = flag.Bool("b", true, "build, default behavior")
-	var testFlag = flag.Bool("t", false, "test")
-	var installFlag = flag.Bool("i", false, "install")
-	var fmtFlag = flag.Bool("f", false, "fmt")
-	var versionFlag = flag.Bool("v", false, "version")
-	var xFlag = flag.Bool("x", false, "show verbose command")
-	var gntpServer = flag.String("gntp", "127.0.0.1:23053", "use Growler")
+	var helpFlag = flag.Bool("h", false, "Show Help")
+	var buildFlag = flag.Bool("b", true, "Run build, default behavior")
+	var testFlag = flag.Bool("t", false, "Run test")
+	var installFlag = flag.Bool("i", false, "Run install")
+	var fmtFlag = flag.Bool("f", false, "Run fmt")
+	var versionFlag = flag.Bool("v", false, "Version")
+	var xFlag = flag.Bool("x", false, "Show verbose command")
+
+	var useGrowl = flag.Bool("growl", false, "Use Growler")
+	var gntpServer = flag.String("gntp", "", "The GNTP DSN")
+	if *useGrowl && *gntpServer == "" {
+		*gntpServer = "127.0.0.1:23053"
+	}
 
 	flag.Parse()
 	args := flag.Args()
@@ -108,6 +113,7 @@ func main() {
 		}
 	}
 
+	var wasFailed bool = false
 	var cmd *exec.Cmd
 
 	runCommand := func(cmd *exec.Cmd) {
@@ -115,14 +121,28 @@ func main() {
 		err = cmd.Start()
 		if err != nil {
 			log.Println(err)
-			notifyFail(err.Error(), "", gntpServer)
+			if *useGrowl {
+				notifyFail(gntpServer, err.Error(), "")
+			}
+			wasFailed = true
 			return
 		}
 		err = cmd.Wait()
 		if err != nil {
 			log.Println(err)
-			notifyFail(err.Error(), "", gntpServer)
+			if *useGrowl {
+				notifyFail(gntpServer, err.Error(), "")
+			}
+			wasFailed = true
 			return
+		}
+
+		// fixed
+		if wasFailed {
+			if *useGrowl {
+				notifyFixed(gntpServer, "Fixed", "")
+			}
+			fmt.Println("Congratulations! It's fixed!")
 		}
 	}
 

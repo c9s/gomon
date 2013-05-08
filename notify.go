@@ -34,7 +34,17 @@ func createNotification(server *string) *gntp.Client {
 	return growl
 }
 
-func notifyFail(text, callback string, server *string) {
+func notifyFixed(server *string, text, callback string) {
+	growl := createNotification(server)
+	growl.Notify(&gntp.Message{
+		Event:    "success",
+		Title:    "Fixed",
+		Text:     text,
+		Callback: callback,
+	})
+}
+
+func notifyFail(server *string, text, callback string) {
 	growl := createNotification(server)
 	growl.Notify(&gntp.Message{
 		Event:    "failed",
