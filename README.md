@@ -39,3 +39,16 @@ Monitoring With Custom Command:
     gomon src -- go run -x server.go # execute go run -x server.go
     gomon src -- go build -x package # execute go build -x package
 
+
+Related Product
+---------------
+
+GoTray <http://gotray.extremedev.org/>
+
+
+Contributors
+------------
+
+
+
+
