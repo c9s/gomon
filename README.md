@@ -49,8 +49,8 @@ GoTray <http://gotray.extremedev.org/>
 Contributors
 ------------
 
-- Ask Bjørn Hansen <ask _at_ develooper.com>
-- Mattn <mattn.jp _at_ gmail.com>
+- Ask Bjørn Hansen<ask _at_ develooper.com
+- Mattn mattn.jp _at_ gmail.com
 
 
 License
