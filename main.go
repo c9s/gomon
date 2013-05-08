@@ -140,7 +140,7 @@ func main() {
 
 			log.Println("Event:", e)
 
-			if cmd != nil {
+			if cmd != nil && cmd.ProcessState != nil && !cmd.ProcessState.Exited() {
 				err := cmd.Process.Kill()
 				if err != nil {
 					log.Println(err)
