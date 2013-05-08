@@ -1,5 +1,6 @@
 package main
 
+import "path/filepath"
 import "os"
 
 func FileExists(path string) (bool, error) {
@@ -28,4 +29,25 @@ func DirExists(path string) (bool, error) {
 		return false, err
 	}
 	return stat.IsDir(), nil
+}
+
+func Subfolders(path string) (paths []string) {
+	filepath.Walk(path, func(newPath string, info os.FileInfo, err error) error {
+		if err != nil {
+			return err
+		}
+
+		if info.IsDir() {
+			name := info.Name()
+			// skip folders that begin with a dot
+			hidden := filepath.HasPrefix(name, ".") && name != "." && name != ".."
+			if hidden {
+				return filepath.SkipDir
+			} else {
+				paths = append(paths, newPath)
+			}
+		}
+		return nil
+	})
+	return paths
 }
