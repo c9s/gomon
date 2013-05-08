@@ -40,6 +40,14 @@ Monitoring With Custom Command:
     gomon src -- go build -x package # execute go build -x package
 
 
+
+Todo
+-----
+
+- Add configration file support.
+- Command queue support.
+
+
 Related Product
 ---------------
 
@@ -49,9 +57,8 @@ GoTray <http://gotray.extremedev.org/>
 Contributors
 ------------
 
-- Ask Bjørn Hansen<ask _at_ develooper.com
-- Mattn mattn.jp _at_ gmail.com
-
+- Ask Bjørn Hansen
+- Mattn mattn.jp
 
 License
 --------
