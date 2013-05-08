@@ -15,15 +15,18 @@ var goCommandSet = map[string][]string{
 	"install": []string{"go", "install"},
 	"build":   []string{"go", "build"},
 	"fmt":     []string{"go", "fmt"},
+	"run":     []string{"go", "run"},
 }
 
 func main() {
 	var helpFlag = flag.Bool("h", false, "Show Help")
-	var buildFlag = flag.Bool("b", true, "Run build, default behavior")
-	var testFlag = flag.Bool("t", false, "Run test")
-	var installFlag = flag.Bool("i", false, "Run install")
-	var fmtFlag = flag.Bool("f", false, "Run fmt")
+	var buildFlag = flag.Bool("b", true, "Run `go build`, the default behavior")
+	var testFlag = flag.Bool("t", false, "Run `go test`")
+	var installFlag = flag.Bool("i", false, "Run `go install`")
+	var fmtFlag = flag.Bool("f", false, "Run `go fmt`")
+	var runFlag = flag.Bool("r", false, "Run `go run`")
 	var versionFlag = flag.Bool("v", false, "Version")
+
 	var xFlag = flag.Bool("x", false, "Show verbose command")
 
 	var useGrowl = flag.Bool("growl", false, "Use Growler")
@@ -75,6 +78,8 @@ func main() {
 			cmds = goCommandSet["install"]
 		} else if *fmtFlag {
 			cmds = goCommandSet["fmt"]
+		} else if *runFlag {
+			cmds = goCommandSet["run"]
 		}
 		if *xFlag && len(cmds) > 0 {
 			cmds = append(cmds, "-x")
