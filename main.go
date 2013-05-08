@@ -139,6 +139,7 @@ func main() {
 
 		// fixed
 		if wasFailed {
+			wasFailed = false
 			if *useGrowl {
 				notifyFixed(gntpServer, "Fixed", "")
 			}
