@@ -44,12 +44,7 @@ func main() {
 	var args = flag.Args()
 	if *helpFlag {
 		fmt.Println("Usage: gomon [options] [dir] [-- command]")
-		fmt.Println("   -b build")
-		fmt.Println("   -t test")
-		fmt.Println("   -r run")
-		fmt.Println("   -i install")
-		fmt.Println("   -x show verbose command")
-		fmt.Println("   -h help")
+		flag.PrintDefaults()
 		os.Exit(0)
 	}
 	if *versionFlag {
