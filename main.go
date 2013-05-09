@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"github.com/howeyc/fsnotify"
+	"github.com/koyachi/go-term-ansicolor/ansicolor"
 	"log"
 	"os"
 	"os/exec"
@@ -12,6 +13,14 @@ import (
 )
 
 var versionStr = "0.1.0"
+
+func success(msg string) {
+	if runtime.GOOS == "windows" {
+		fmt.Println(msg)
+	} else {
+		fmt.Println(ansicolor.Black(ansicolor.OnGreen(msg)))
+	}
+}
 
 func main() {
 	var dirArgs = []string{}
@@ -169,7 +178,7 @@ func main() {
 			if options.Bool("growl") {
 				notifyFixed(options.String("gntp"), "Congratulations! It's fixed!", "")
 			}
-			fmt.Println("Congratulations! It's fixed!")
+			success("Congratulations! It's fixed!")
 		}
 	}
 
