@@ -9,6 +9,7 @@ import (
 var cout = doscolor.NewWrapper(os.Stdout)
 
 func success(msg string) {
+	cout.Save()
 	cout.Set(doscolor.Green | doscolor.Bright)
 	fmt.Println(msg)
 	cout.Restore()
