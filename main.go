@@ -124,7 +124,11 @@ func main() {
 	if options.Bool("h") {
 		fmt.Println("Usage: gomon [options] [dir] [-- command]")
 		for _, option := range options {
-			fmt.Printf("  -%s: %s\n", option.flag, option.description)
+			if _, ok := option.value.(string); ok {
+				fmt.Printf("  -%s=%s: %s\n", option.flag, option.value, option.description)
+			} else {
+				fmt.Printf("  -%s: %s\n", option.flag, option.description)
+			}
 		}
 		os.Exit(0)
 	}
