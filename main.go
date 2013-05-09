@@ -58,40 +58,20 @@ func main() {
 
 	_ = cmds
 
-	if len(args) > 0 {
-		var hasDash bool = false
-		for _, a := range args {
-			if a == "--" {
-				hasDash = true
-			}
+	var hasDash bool = false
+	for _, a := range args {
+		if a == "--" {
+			hasDash = true
+			continue
 		}
-		if hasDash {
-			var takeDir = true
-			for _, a := range args {
-				if takeDir && a == "--" {
-					takeDir = false
-					continue
-				}
-				if takeDir {
-					dirs = append(dirs, a)
-				} else {
-					cmd = append(cmd, a)
-				}
+		if !hasDash {
+			if exists, _ := FileExists(a); exists {
+				dirs = append(dirs, a)
+			} else {
+				log.Printf("Invalid path are specified: '%v'", a)
 			}
 		} else {
-			// detect the argument (as path or command)
-			var arePaths bool = true
-			for _, a := range args {
-				var exists, _ = FileExists(a)
-				if !exists {
-					arePaths = false
-				}
-			}
-			if arePaths {
-				dirs = args
-			} else {
-				cmd = args
-			}
+			cmd = append(cmd, a)
 		}
 	}
 
