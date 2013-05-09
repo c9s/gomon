@@ -13,20 +13,6 @@ import (
 
 var versionStr = "0.1.0"
 
-var goCommands = map[string][]string{
-	"test":    []string{"go", "test"},
-	"install": []string{"go", "install"},
-	"build":   []string{"go", "build"},
-	"fmt":     []string{"go", "fmt"},
-	"run":     []string{"go", "run"},
-}
-
-type Command []string
-
-type CommandSet struct {
-	Commands []Command
-}
-
 type gomonOption struct {
 	flag        string
 	value       interface{}
