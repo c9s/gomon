@@ -49,7 +49,7 @@ func main() {
 		if !hasDash && flag[0] == '-' {
 			option := options.Get(flag[1:])
 			if option == nil {
-				log.Printf("Invalid option: '%v'\n", flag)
+				log.Fatal("Invalid option: '%v'\n", flag)
 			} else {
 				if _, ok := option.value.(string); ok {
 					option.value = value
