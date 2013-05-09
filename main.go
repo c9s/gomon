@@ -2,11 +2,11 @@ package main
 
 import "github.com/howeyc/fsnotify"
 import "log"
-import "flag"
 import "fmt"
 import "os"
 import "os/exec"
 import "regexp"
+import "strings"
 import "time"
 
 var versionStr = "0.1.0"
@@ -25,73 +25,135 @@ type CommandSet struct {
 	Commands []Command
 }
 
+type gomonOption struct {
+	flag        string
+	value       interface{}
+	description string
+}
+
+type gomonOptions []*gomonOption
+
+var options = gomonOptions{
+	{"h", false, "Show Help"},
+	{"b", true, "Run `go build`, the default behavior"},
+	{"t", false, "Run `go test`"},
+	{"i", false, "Run `go install`"},
+	{"f", false, "Run `go fmt`"},
+	{"r", false, "Run `go run`"},
+	{"x", false, "Show verbose command"},
+	{"v", false, "Show version"},
+	{"growl", false, "Use Growler"},
+	{"gntp", "127.0.0.1:23053", "The GNTP DSN"},
+}
+
+func (options gomonOptions) Get(flag string) *gomonOption {
+	for _, option := range options {
+		if option.flag == flag {
+			return option
+		}
+	}
+	return nil
+}
+
+func (options gomonOptions) String(flag string) string {
+	for _, option := range options {
+		if option.flag == flag {
+			s, _ := option.value.(string)
+			return s
+		}
+	}
+	return ""
+}
+
+func (options gomonOptions) Bool(flag string) bool {
+	for _, option := range options {
+		if option.flag == flag {
+			b, _ := option.value.(bool)
+			return b
+		}
+	}
+	return false
+}
+
 func main() {
-	var helpFlag = flag.Bool("h", false, "Show Help")
-	var buildFlag = flag.Bool("b", false, "Run `go build`, the default behavior")
-	var testFlag = flag.Bool("t", false, "Run `go test`")
-	var installFlag = flag.Bool("i", false, "Run `go install`")
-	var fmtFlag = flag.Bool("f", false, "Run `go fmt`")
-	var runFlag = flag.Bool("r", false, "Run `go run`")
-	// var allFlag = flag.Bool("a", false, "Run build, test, fmt and install")
+	var dirArgs = []string{}
+	var cmdArgs = []string{}
 
-	var versionFlag = flag.Bool("v", false, "Version")
-	var xFlag = flag.Bool("x", false, "Show verbose command")
+	var hasDash bool = false
+	for n := 1; n < len(os.Args); n++ {
+		arg := os.Args[n]
+		if arg == "--" {
+			hasDash = true
+			continue
+		}
+		tokens := strings.SplitN(arg, "=", 2)
+		flag, value := "", ""
+		switch len(tokens) {
+		case 1:
+			flag = tokens[0]
+		case 2:
+			flag = tokens[0]
+			value = tokens[1]
+		default:
+			continue
+		}
+		if flag[0] == '-' {
+			option := options.Get(flag[1:])
+			if option == nil {
+				log.Printf("Invalid option: '%v'\n", flag)
+			} else {
+				if _, ok := option.value.(string); ok {
+					option.value = value
+				} else {
+					option.value = true
+				}
+			}
+		} else {
+			if hasDash {
+				if exists, _ := FileExists(arg); exists {
+					dirArgs = append(dirArgs, arg)
+				} else {
+					log.Printf("Invalid path are specified: '%v'", arg)
+				}
+			} else {
+				cmdArgs = append(cmdArgs, arg)
+			}
+		}
+	}
 
-	var useGrowl = flag.Bool("growl", false, "Use Growler")
-	var gntpServer = flag.String("gntp", "127.0.0.1:23053", "The GNTP DSN")
-
-	flag.Parse()
-
-	var args = flag.Args()
-	if *helpFlag {
+	if options.Bool("h") {
 		fmt.Println("Usage: gomon [options] [dir] [-- command]")
-		flag.PrintDefaults()
+		for _, option := range options {
+			fmt.Printf("  -%s: %s\n", option.flag, option.description)
+		}
 		os.Exit(0)
 	}
-	if *versionFlag {
+	if options.Bool("v") {
 		fmt.Printf("gomon %s\n", versionStr)
 		os.Exit(0)
 	}
 
-	var dirs = []string{}
 	var cmds = CommandSet{}
-	var cmd = Command{}
+	var cmd = Command(cmdArgs)
 
 	_ = cmds
 
-	var hasDash bool = false
-	for _, a := range args {
-		if a == "--" {
-			hasDash = true
-			continue
-		}
-		if !hasDash {
-			if exists, _ := FileExists(a); exists {
-				dirs = append(dirs, a)
-			} else {
-				log.Printf("Invalid path are specified: '%v'", a)
-			}
-		} else {
-			cmd = append(cmd, a)
-		}
-	}
-
 	if len(cmd) == 0 {
-		if *testFlag {
+		if options.Bool("t") {
 			cmd = goCommands["test"]
-		} else if *buildFlag {
+		} else if options.Bool("b") {
 			cmd = goCommands["build"]
-		} else if *installFlag {
+		} else if options.Bool("i") {
 			cmd = goCommands["install"]
-		} else if *fmtFlag {
+		} else if options.Bool("f") {
 			cmd = goCommands["fmt"]
-		} else if *runFlag {
+		} else if options.Bool("r") {
 			cmd = goCommands["run"]
 		} else {
 			// default behavior
 			cmd = goCommands["build"]
 		}
-		if *xFlag && len(cmd) > 0 {
+		if options.Bool("x") && len(cmd) > 0 {
 			cmd = append(cmd, "-x")
 		}
 	}
@@ -101,16 +163,16 @@ func main() {
 		os.Exit(2)
 	}
 
-	if len(dirs) == 0 {
+	if len(dirArgs) == 0 {
 		var cwd, err = os.Getwd()
 		if err != nil {
 			fmt.Println(err)
 			os.Exit(1)
 		}
-		dirs = []string{cwd}
+		dirArgs = []string{cwd}
 	}
 
-	fmt.Println("Watching", dirs, "for", cmd)
+	fmt.Println("Watching", dirArgs, "for", cmd)
 
 	watcher, err := fsnotify.NewWatcher()
 
@@ -118,7 +180,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	for _, dir := range dirs {
+	for _, dir := range dirArgs {
 		subfolders := Subfolders(dir)
 		for _, f := range subfolders {
 			err = watcher.WatchFlags(f, fsnotify.FSN_CREATE|fsnotify.FSN_MODIFY)
@@ -136,8 +198,8 @@ func main() {
 		err = task.Start()
 		if err != nil {
 			log.Println(err)
-			if *useGrowl {
-				notifyFail(*gntpServer, err.Error(), "")
+			if options.Bool("growl") {
+				notifyFail(options.String("gntp"), err.Error(), "")
 			}
 			wasFailed = true
 			return
@@ -145,8 +207,8 @@ func main() {
 		err = task.Wait()
 		if err != nil {
 			log.Println(err)
-			if *useGrowl {
-				notifyFail(*gntpServer, err.Error(), "")
+			if options.Bool("growl") {
+				notifyFail(options.String("gntp"), err.Error(), "")
 			}
 			wasFailed = true
 			return
@@ -155,8 +217,8 @@ func main() {
 		// fixed
 		if wasFailed {
 			wasFailed = false
-			if *useGrowl {
-				notifyFixed(*gntpServer, "Congratulations!", "")
+			if options.Bool("growl") {
+				notifyFixed(options.String("gntp"), "Congratulations!", "")
 			}
 			fmt.Println("Congratulations! It's fixed!")
 		}
