@@ -109,7 +109,7 @@ func main() {
 				}
 			}
 		} else {
-			if hasDash {
+			if !hasDash {
 				if exists, _ := FileExists(arg); exists {
 					dirArgs = append(dirArgs, arg)
 				} else {
