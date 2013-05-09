@@ -182,10 +182,17 @@ func main() {
 				log.Println(err)
 			}
 
-			log.Println("Event:", e)
-
 			if !matched {
+				if options.Bool("d") {
+					log.Println("Ignore:", e)
+				}
 				continue
+			}
+
+			if options.Bool("d") {
+				log.Println("Event:", e)
+			} else {
+				log.Println(e.Name)
 			}
 
 			if !fired {

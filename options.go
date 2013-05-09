@@ -10,13 +10,14 @@ type gomonOptions []*gomonOption
 
 var options = gomonOptions{
 	{"h", false, "Show Help"},
-	{"b", true, "Run `go build`, the default behavior"},
+	{"b", false, "Run `go build`, the default behavior"},
 	{"t", false, "Run `go test`"},
 	{"i", false, "Run `go install`"},
 	{"f", false, "Run `go fmt`"},
 	{"r", false, "Run `go run`"},
 	{"x", false, "Show verbose command"},
 	{"v", false, "Show version"},
+	{"d", false, "Print debug message"},
 	{"growl", false, "Use Growler"},
 	{"install-growl-icons", false, "Install growl icons"},
 	{"gntp", "127.0.0.1:23053", "The GNTP DSN"},
