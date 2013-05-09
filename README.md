@@ -40,6 +40,10 @@ Monitoring With Custom Command:
     gomon src -- go build -x package # execute go build -x package
 
 
+Screenshot
+----------
+
+![](https://raw.github.com/c9s/gomon/gh-pages/images/screenshot.png)
 
 Todo
 -----
