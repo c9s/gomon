@@ -97,7 +97,9 @@ func main() {
 		default:
 			continue
 		}
-		if flag[0] == '-' {
+
+		// everything after the dash, should be the command arguments
+		if !hasDash && flag[0] == '-' {
 			option := options.Get(flag[1:])
 			if option == nil {
 				log.Printf("Invalid option: '%v'\n", flag)
