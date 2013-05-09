@@ -7,6 +7,7 @@ import "fmt"
 import "os"
 import "os/exec"
 import "regexp"
+import "time"
 
 var versionStr = "0.1.0"
 
@@ -161,6 +162,7 @@ func main() {
 		}
 	}
 
+	var fired bool = false
 	for {
 		select {
 		case e := <-watcher.Event:
@@ -175,16 +177,26 @@ func main() {
 
 			log.Println("Event:", e)
 
-			if task != nil && task.ProcessState != nil && !task.ProcessState.Exited() {
-				err := task.Process.Kill()
-				if err != nil {
-					log.Println(err)
-				}
+			if !fired {
+				fired = true
+				go func() {
+					// duration to avoid to run commands frequency at once
+					select {
+					case <-time.After(100 * time.Millisecond):
+						fired = false
+						if task != nil && task.ProcessState != nil && !task.ProcessState.Exited() {
+							err := task.Process.Kill()
+							if err != nil {
+								log.Println(err)
+							}
+						}
+						task = exec.Command(cmd[0], cmd[1:]...)
+						task.Stdout = os.Stdout
+						task.Stderr = os.Stderr
+						runCommand(task)
+					}
+				}()
 			}
-			task = exec.Command(cmd[0], cmd[1:]...)
-			task.Stdout = os.Stdout
-			task.Stderr = os.Stderr
-			go runCommand(task)
 
 		case err := <-watcher.Error:
 			log.Println("Error:", err)
