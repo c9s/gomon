@@ -156,7 +156,7 @@ func main() {
 		if wasFailed {
 			wasFailed = false
 			if *useGrowl {
-				notifyFixed(*gntpServer, "Fixed", "")
+				notifyFixed(*gntpServer, "Congratulations!", "")
 			}
 			fmt.Println("Congratulations! It's fixed!")
 		}
