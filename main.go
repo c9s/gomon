@@ -224,7 +224,7 @@ func main() {
 		if wasFailed {
 			wasFailed = false
 			if options.Bool("growl") {
-				notifyFixed(options.String("gntp"), "Congratulations!", "")
+				notifyFixed(options.String("gntp"), "Congratulations! It's fixed!", "")
 			}
 			fmt.Println("Congratulations! It's fixed!")
 		}
