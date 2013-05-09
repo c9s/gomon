@@ -201,6 +201,7 @@ func main() {
 								log.Println(err)
 							}
 						}
+						fmt.Println("Running Task:", cmd)
 						task = exec.Command(cmd[0], cmd[1:]...)
 						task.Stdout = os.Stdout
 						task.Stderr = os.Stderr
