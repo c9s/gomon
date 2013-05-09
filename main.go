@@ -150,6 +150,7 @@ func main() {
 			if options.Bool("growl") {
 				notifyFail(options.String("gntp"), err.Error(), "")
 			}
+			failed("Failed!")
 			wasFailed = true
 			return
 		}
@@ -159,6 +160,7 @@ func main() {
 			if options.Bool("growl") {
 				notifyFail(options.String("gntp"), err.Error(), "")
 			}
+			failed("Failed!")
 			wasFailed = true
 			return
 		}

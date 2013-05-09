@@ -14,3 +14,10 @@ func success(msg string) {
 	fmt.Println(msg)
 	cout.Restore()
 }
+
+func failed(msg string) {
+	cout.Save()
+	cout.Set(doscolor.Red | doscolor.Bright)
+	fmt.Println(msg)
+	cout.Restore()
+}
