@@ -113,7 +113,7 @@ func main() {
 				if exists, _ := FileExists(arg); exists {
 					dirArgs = append(dirArgs, arg)
 				} else {
-					log.Printf("Invalid path are specified: '%v'", arg)
+					log.Printf("Invalid path: '%v'", arg)
 				}
 			} else {
 				cmdArgs = append(cmdArgs, arg)
