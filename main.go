@@ -132,7 +132,7 @@ func main() {
 	for _, dir := range dirArgs {
 		subfolders := Subfolders(dir)
 		for _, f := range subfolders {
-			err = watcher.WatchFlags(f, fsnotify.FSN_CREATE|fsnotify.FSN_MODIFY)
+			err = watcher.WatchFlags(f, fsnotify.FSN_ALL)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -182,11 +182,11 @@ func main() {
 				log.Println(err)
 			}
 
+			log.Println("Event:", e)
+
 			if !matched {
 				continue
 			}
-
-			log.Println("Event:", e)
 
 			if !fired {
 				fired = true
@@ -196,6 +196,7 @@ func main() {
 					case <-time.After(100 * time.Millisecond):
 						fired = false
 						if task != nil && task.ProcessState != nil && !task.ProcessState.Exited() {
+							fmt.Println("Stopping Task...")
 							err := task.Process.Kill()
 							if err != nil {
 								log.Println(err)
