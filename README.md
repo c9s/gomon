@@ -28,11 +28,11 @@ Monitoring Current Directory And Test Automatically:
 
 Monitoring Directory And Build Automatically:
 
-    gomon path/to/package -b
+    gomon -b path/to/package -b
 
 Monitoring Directory And Build Automatically With Verbose Messages:
 
-    gomon path/to/package -b -x
+    gomon -b -x path/to/package
 
 Monitoring With Custom Command:
 
