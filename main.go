@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	conf "github.com/hgfischer/goconf"
 	"github.com/howeyc/fsnotify"
 	"log"
 	"os"
@@ -16,6 +17,14 @@ var versionStr = "0.1.0"
 func main() {
 	var dirArgs = []string{}
 	var cmdArgs = []string{}
+
+	// read config file here
+	if exists, _ := FileExists(".gomon.ini"); exists {
+		var config, err = conf.ReadConfigFile(".gomon.ini")
+		// TODO
+		_ = config
+		_ = err
+	}
 
 	var hasDash bool = false
 	for n := 1; n < len(os.Args); n++ {
