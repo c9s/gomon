@@ -5,7 +5,9 @@ var goCommands = map[string][]string{
 	"install": []string{"go", "install"},
 	"build":   []string{"go", "build"},
 	"fmt":     []string{"go", "fmt"},
+	"fix":     []string{"go", "fix"},
 	"run":     []string{"go", "run"},
+	"vet":     []string{"go", "vet"},
 }
 
 type Command []string
