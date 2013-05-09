@@ -13,24 +13,30 @@ import (
 
 var iconDirectory string
 
-func iconDir() string {
-	if iconDirectory != "" {
-		return iconDirectory
-	}
+func getConfigDir() string {
 	u, err := user.Current()
 	if err != nil {
 		log.Fatal("failed to get home directory: ", err)
 	}
-	dir := filepath.Join(u.HomeDir, ".config")
+	return filepath.Join(u.HomeDir, ".gomon")
+}
+
+func getIconDir() string {
+	if iconDirectory != "" {
+		return iconDirectory
+	}
+	var dir string
 	if runtime.GOOS == "windows" {
 		dir = os.Getenv("APPDATA")
+	} else {
+		dir = getConfigDir()
 	}
 	iconDirectory = filepath.Join(dir, "gomon")
 	return iconDirectory
 }
 
 func icon(name string) string {
-	f := filepath.Join(iconDir(), name+".png")
+	f := filepath.Join(getIconDir(), name+".png")
 	if _, err := FileExists(f); err == nil {
 		return f
 	}
@@ -54,7 +60,7 @@ func download(target, path string) {
 }
 
 func installGrowlIcons() {
-	dir := iconDir()
+	dir := getIconDir()
 	_, err := os.Stat(dir)
 	if err != nil {
 		if os.Mkdir(dir, 0700) != nil {
@@ -63,9 +69,8 @@ func installGrowlIcons() {
 	}
 	download(
 		"https://raw.github.com/c9s/gomon/gh-pages/icons/success.png",
-		filepath.Join(iconDir(), "success.png"))
+		filepath.Join(getIconDir(), "success.png"))
 	download(
 		"https://raw.github.com/c9s/gomon/gh-pages/icons/failed.png",
-		filepath.Join(iconDir(), "failed.png"))
+		filepath.Join(getIconDir(), "failed.png"))
 }
-
