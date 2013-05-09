@@ -62,7 +62,7 @@ Contributors
 ------------
 
 - Ask Bjørn Hansen
-- Mattn mattn.jp
+- Yasuhiro Matsumoto (a.k.a mattn)
 
 License
 --------
