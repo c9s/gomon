@@ -1,7 +1,6 @@
 package main
 
 import (
-	// "bytes"
 	"github.com/mattn/go-gntp"
 )
 
@@ -37,6 +36,7 @@ func notifyFixed(server string, text, callback string) {
 		Title:    "Fixed",
 		Text:     text,
 		Callback: callback,
+		Icon:     icon("success"),
 	})
 }
 
@@ -47,5 +47,6 @@ func notifyFail(server string, text, callback string) {
 		Title:    "Failed",
 		Text:     text,
 		Callback: callback,
+		Icon:     icon("failed"),
 	})
 }

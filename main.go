@@ -1,13 +1,15 @@
 package main
 
-import "github.com/howeyc/fsnotify"
-import "log"
-import "fmt"
-import "os"
-import "os/exec"
-import "regexp"
-import "strings"
-import "time"
+import (
+	"fmt"
+	"github.com/howeyc/fsnotify"
+	"log"
+	"os"
+	"os/exec"
+	"regexp"
+	"strings"
+	"time"
+)
 
 var versionStr = "0.1.0"
 
@@ -43,6 +45,7 @@ var options = gomonOptions{
 	{"x", false, "Show verbose command"},
 	{"v", false, "Show version"},
 	{"growl", false, "Use Growler"},
+	{"install-growl-icons", false, "Install growl icons"},
 	{"gntp", "127.0.0.1:23053", "The GNTP DSN"},
 }
 
@@ -136,6 +139,11 @@ func main() {
 	}
 	if options.Bool("v") {
 		fmt.Printf("gomon %s\n", versionStr)
+		os.Exit(0)
+	}
+
+	if options.Bool("install-growl-icons") {
+		installGrowlIcons()
 		os.Exit(0)
 	}
 
