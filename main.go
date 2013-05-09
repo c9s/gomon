@@ -145,14 +145,14 @@ func main() {
 	if len(cmd) == 0 {
 		if options.Bool("t") {
 			cmd = goCommands["test"]
-		} else if options.Bool("b") {
-			cmd = goCommands["build"]
 		} else if options.Bool("i") {
 			cmd = goCommands["install"]
 		} else if options.Bool("f") {
 			cmd = goCommands["fmt"]
 		} else if options.Bool("r") {
 			cmd = goCommands["run"]
+		} else if options.Bool("b") {
+			cmd = goCommands["build"]
 		} else {
 			// default behavior
 			cmd = goCommands["build"]
