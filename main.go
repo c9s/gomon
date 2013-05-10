@@ -19,7 +19,8 @@ func main() {
 	var cmdArgs = []string{}
 
 	var hasDash bool = false
-	for n := 1; n < len(os.Args); n++ {
+	var nArgs = len(os.Args)
+	for n := 1; n < nArgs; n++ {
 		arg := os.Args[n]
 		if arg == "--" {
 			hasDash = true
@@ -30,6 +31,10 @@ func main() {
 		switch len(tokens) {
 		case 1:
 			flag = tokens[0]
+			if n < nArgs - 1 && !options.IsBool(flag) {
+				value = os.Args[n+1]
+				n++
+			}
 		case 2:
 			flag = tokens[0]
 			value = tokens[1]
