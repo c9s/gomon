@@ -1,14 +1,14 @@
 package main
 
-type gomonOption struct {
+type Option struct {
 	flag        string
 	value       interface{}
 	description string
 }
 
-type gomonOptions []*gomonOption
+type Options []*Option
 
-var options = gomonOptions{
+var options = Options{
 	{"h", false, "Show Help"},
 	{"b", false, "Run `go build`, the default behavior"},
 	{"t", false, "Run `go test`"},
@@ -24,7 +24,7 @@ var options = gomonOptions{
 	{"gntp", "127.0.0.1:23053", "The GNTP DSN"},
 }
 
-func (options gomonOptions) Get(flag string) *gomonOption {
+func (options Options) Get(flag string) *Option {
 	for _, option := range options {
 		if option.flag == flag {
 			return option
@@ -33,7 +33,7 @@ func (options gomonOptions) Get(flag string) *gomonOption {
 	return nil
 }
 
-func (options gomonOptions) String(flag string) string {
+func (options Options) String(flag string) string {
 	for _, option := range options {
 		if option.flag == flag {
 			s, _ := option.value.(string)
@@ -43,7 +43,7 @@ func (options gomonOptions) String(flag string) string {
 	return ""
 }
 
-func (options gomonOptions) Bool(flag string) bool {
+func (options Options) Bool(flag string) bool {
 	for _, option := range options {
 		if option.flag == flag {
 			b, _ := option.value.(bool)
@@ -53,7 +53,7 @@ func (options gomonOptions) Bool(flag string) bool {
 	return false
 }
 
-func (options gomonOptions) IsBool(flag string) bool {
+func (options Options) IsBool(flag string) bool {
 	for _, option := range options {
 		if option.flag == flag {
 			_, ok := option.value.(bool)
