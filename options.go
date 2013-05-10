@@ -18,6 +18,7 @@ var options = gomonOptions{
 	{"x", false, "Show verbose command"},
 	{"v", false, "Show version"},
 	{"d", false, "Print debug message"},
+	{"cd", false, "Run commands on directory"},
 	{"growl", false, "Use Growler"},
 	{"install-growl-icons", false, "Install growl icons"},
 	{"gntp", "127.0.0.1:23053", "The GNTP DSN"},

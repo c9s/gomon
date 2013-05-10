@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"os/exec"
+	"path/filepath"
 	"regexp"
 	"strings"
 	"time"
@@ -199,7 +200,7 @@ func main() {
 
 			if !fired {
 				fired = true
-				go func() {
+				go func(dir string) {
 					// duration to avoid to run commands frequency at once
 					select {
 					case <-time.After(100 * time.Millisecond):
@@ -215,9 +216,12 @@ func main() {
 						task = exec.Command(cmd[0], cmd[1:]...)
 						task.Stdout = os.Stdout
 						task.Stderr = os.Stderr
+						if options.Bool("cd") {
+							task.Dir = dir
+						}
 						runCommand(task)
 					}
-				}()
+				}(filepath.Dir(e.Name))
 			}
 
 		case err := <-watcher.Error:
