@@ -1,5 +1,9 @@
 language: go
 
+
+before_script:
+ - go get github.com/koyachi/go-term-ansicolor/ansicolor
+ - go get github.com/mattn/go-gntp
 script:
  - go build
 
