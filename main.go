@@ -221,7 +221,7 @@ func main() {
 						task = exec.Command(cmd[0], cmd[1:]...)
 						task.Stdout = os.Stdout
 						task.Stderr = os.Stderr
-						if options.Bool("cd") {
+						if options.Bool("chdir") {
 							task.Dir = dir
 						}
 						runCommand(task)
