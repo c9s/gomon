@@ -11,6 +11,24 @@ type Option struct {
 
 type Options *[]Option
 
-func Opt(spec string, defvalue interface{}, usage string) {
+func Opt(spec string, val interface{}, usage string) *Option {
+	opt := Option
+	parts := strings.SplitN(spec, "|")
 
+	// with short and long flag
+	if len(parts) == 1 {
+		if len(parts[0]) == 1 {
+			opt.ShortFlag = parts[0]
+		} else {
+			opt.LongFlag = parts[0]
+		}
+		opt.Usage = usage
+		opt.Value = val
+	} else if len(parts) == 2 {
+		opt.ShortFlag = parts[0]
+		opt.LongFlag = parts[1]
+		opt.Usage = usage
+		opt.Value = val
+	}
+	return opt
 }
