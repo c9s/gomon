@@ -34,6 +34,15 @@ func NewOptions() Options {
 
 var options = NewOptions()
 
+func (options Options) Has(flag string) bool {
+	for _, option := range options {
+		if option.flag == flag {
+			return true
+		}
+	}
+	return false
+}
+
 func (options Options) Get(flag string) *Option {
 	for _, option := range options {
 		if option.flag == flag {
@@ -95,7 +104,7 @@ func (options Options) Parse(args []string) (dirArgs []string, cmdArgs []string)
 				switch len(tokens) {
 				case 1:
 					flag = tokens[0]
-					if n < nArgs-1 && !options.IsBool(flag[1:]) {
+					if n < nArgs-1 && !options.Has(flag) && !options.IsBool(flag[1:]) {
 						value = args[n+1]
 						n++
 					}
