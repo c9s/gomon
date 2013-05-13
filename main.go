@@ -155,7 +155,7 @@ func main() {
 				go func(dir string) {
 					// duration to avoid to run commands frequency at once
 					select {
-					case <-time.After(100 * time.Millisecond):
+					case <-time.After(200 * time.Millisecond):
 						fired = false
 						err := cmds.StopTask()
 						if err != nil {
