@@ -24,6 +24,7 @@ func NewOptions() Options {
 		{"x", false, "Show verbose command"},
 		{"v", false, "Show version"},
 		{"d", false, "Print debug message"},
+		{"R", false, "Watch directory recursively"},
 		{"chdir", false, "Run commands on directory"},
 		{"growl", false, "Use Growler"},
 		{"install-growl-icons", false, "Install growl icons"},
