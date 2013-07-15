@@ -28,7 +28,7 @@ Monitoring Current Directory And Test Automatically:
 
 Monitoring Directory And Build Automatically:
 
-    gomon -b path/to/package -b
+    gomon -b path/to/package
 
 Monitoring Directory And Build Automatically With Verbose Messages:
 
