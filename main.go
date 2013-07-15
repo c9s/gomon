@@ -31,7 +31,7 @@ func main() {
 		switch len(tokens) {
 		case 1:
 			flag = tokens[0]
-			if n < nArgs - 1 && !options.IsBool(flag) {
+			if n < nArgs - 1 && !options.IsBool(flag[1:]) {
 				value = os.Args[n+1]
 				n++
 			}
