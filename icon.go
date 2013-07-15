@@ -63,7 +63,7 @@ func installGrowlIcons() {
 	dir := getIconDir()
 	_, err := os.Stat(dir)
 	if err != nil {
-		if os.Mkdir(dir, 0700) != nil {
+		if os.MkdirAll(dir, 0700) != nil {
 			log.Fatal("failed to create directory: ", err)
 		}
 	}
