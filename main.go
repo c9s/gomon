@@ -5,7 +5,6 @@ import (
 	"github.com/howeyc/fsnotify"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"regexp"
 	"strings"
@@ -31,7 +30,7 @@ func main() {
 		switch len(tokens) {
 		case 1:
 			flag = tokens[0]
-			if n < nArgs - 1 && !options.IsBool(flag[1:]) {
+			if n < nArgs-1 && !options.IsBool(flag[1:]) {
 				value = os.Args[n+1]
 				n++
 			}
@@ -88,34 +87,31 @@ func main() {
 		os.Exit(0)
 	}
 
-	var cmds = CommandSet{}
-	var cmd = Command(cmdArgs)
-
-	_ = cmds
-
-	if len(cmd) == 0 {
-		if options.Bool("t") {
-			cmd = goCommands["test"]
-		} else if options.Bool("i") {
-			cmd = goCommands["install"]
-		} else if options.Bool("f") {
-			cmd = goCommands["fmt"]
-		} else if options.Bool("r") {
-			cmd = goCommands["run"]
-		} else if options.Bool("b") {
-			cmd = goCommands["build"]
-		} else {
-			// default behavior
-			cmd = goCommands["build"]
-		}
-		if options.Bool("x") && len(cmd) > 0 {
-			cmd = append(cmd, "-x")
-		}
+	var cmds = CommandList{}
+	if options.Bool("f") {
+		cmds.Add(goCommands["fmt"])
 	}
-
-	if len(cmd) == 0 {
-		fmt.Println("No command specified")
-		os.Exit(2)
+	if options.Bool("t") {
+		cmds.Add(goCommands["test"])
+	}
+	if options.Bool("b") {
+		cmds.Add(goCommands["build"])
+	}
+	if options.Bool("r") {
+		cmds.Add(goCommands["run"])
+	}
+	if options.Bool("i") {
+		cmds.Add(goCommands["install"])
+	}
+	if options.Bool("x") {
+		cmds.AppendOption("-x")
+	}
+	if len(cmdArgs) > 0 {
+		cmds.Add(Command(cmdArgs))
+	} else {
+		if cmds.Len() == 0 {
+			cmds.Add(goCommands["build"])
+		}
 	}
 
 	if len(dirArgs) == 0 {
@@ -127,7 +123,7 @@ func main() {
 		dirArgs = []string{cwd}
 	}
 
-	fmt.Println("Watching", dirArgs, "for", cmd)
+	fmt.Println("Watching", dirArgs, "for", cmds)
 
 	watcher, err := fsnotify.NewWatcher()
 
@@ -146,21 +142,15 @@ func main() {
 	}
 
 	var wasFailed bool = false
-	var task *exec.Cmd
 
-	runCommand := func(task *exec.Cmd) {
-		var err error
-		err = task.Start()
-		if err != nil {
-			log.Println(err)
-			if options.Bool("growl") {
-				notifyFail(options.String("gntp"), err.Error(), "")
-			}
-			failed("Failed!")
-			wasFailed = true
-			return
+	runCommand := func(dir string) {
+		var dirOpt *string
+		if options.Bool("chdir") {
+			dirOpt = &dir
+		} else {
+			dirOpt = nil
 		}
-		err = task.Wait()
+		err := cmds.Run(dirOpt)
 		if err != nil {
 			log.Println(err)
 			if options.Bool("growl") {
@@ -210,21 +200,12 @@ func main() {
 					select {
 					case <-time.After(100 * time.Millisecond):
 						fired = false
-						if task != nil && task.ProcessState != nil && !task.ProcessState.Exited() {
-							fmt.Println("Stopping Task...")
-							err := task.Process.Kill()
-							if err != nil {
-								log.Println(err)
-							}
+						err := cmds.StopTask()
+						if err != nil {
+							log.Println(err)
 						}
-						fmt.Println("Running Task:", cmd)
-						task = exec.Command(cmd[0], cmd[1:]...)
-						task.Stdout = os.Stdout
-						task.Stderr = os.Stderr
-						if options.Bool("chdir") {
-							task.Dir = dir
-						}
-						runCommand(task)
+						fmt.Println("Running Task:", cmds)
+						runCommand(dir)
 					}
 				}(filepath.Dir(e.Name))
 			}
