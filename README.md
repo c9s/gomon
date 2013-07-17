@@ -18,6 +18,10 @@ Usage
 
     gomon     # watch current directory and build the package (the default behavior)
 
+Monitoring Current Directory And Format Automatically:
+
+    gomon -f
+
 Monitoring Current Directory And Build Automatically:
 
     gomon -b
@@ -25,6 +29,15 @@ Monitoring Current Directory And Build Automatically:
 Monitoring Current Directory And Test Automatically:
 
     gomon -t
+
+Monitoring Current Directory And Install Automatically:
+
+    gomon -i
+
+You can run commands sequentialy by specifying multiple options above.
+Monitoring Current Directory And Format, Build, Test and Install Automatically:
+
+    gomon -f -b -t -i
 
 Monitoring Directory And Build Automatically:
 
