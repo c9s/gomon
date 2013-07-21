@@ -1,7 +1,10 @@
 package main
 
-import "path/filepath"
-import "os"
+import (
+	"log"
+	"os"
+	"path/filepath"
+)
 
 func FileExists(path string) (bool, error) {
 	file, err := os.Open(path) // For read access.
@@ -58,4 +61,16 @@ func Subfolders(path string) (paths []string) {
 		return nil
 	})
 	return paths
+}
+
+func FilterExistPaths(paths []string) []string {
+	var result []string
+	for _, path := range paths {
+		if exists, _ := FileExists(path); exists {
+			result = append(result, path)
+		} else {
+			log.Printf("Invalid path: '%v'", path)
+		}
+	}
+	return result
 }
