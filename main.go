@@ -7,64 +7,14 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strings"
 	"time"
 )
 
 var versionStr = "0.1.0"
 
 func main() {
-	var dirArgs = []string{}
-	var cmdArgs = []string{}
-
-	var hasDash bool = false
-	var nArgs = len(os.Args)
-	for n := 1; n < nArgs; n++ {
-		arg := os.Args[n]
-		if arg == "--" {
-			hasDash = true
-			continue
-		}
-		tokens := strings.SplitN(arg, "=", 2)
-		flag, value := "", ""
-		switch len(tokens) {
-		case 1:
-			flag = tokens[0]
-			if n < nArgs-1 && !options.IsBool(flag[1:]) {
-				value = os.Args[n+1]
-				n++
-			}
-		case 2:
-			flag = tokens[0]
-			value = tokens[1]
-		default:
-			continue
-		}
-
-		// everything after the dash, should be the command arguments
-		if !hasDash && flag[0] == '-' {
-			option := options.Get(flag[1:])
-			if option == nil {
-				log.Fatalf("Invalid option: '%v'\n", flag)
-			} else {
-				if _, ok := option.value.(string); ok {
-					option.value = value
-				} else {
-					option.value = true
-				}
-			}
-		} else {
-			if !hasDash {
-				if exists, _ := FileExists(arg); exists {
-					dirArgs = append(dirArgs, arg)
-				} else {
-					log.Printf("Invalid path: '%v'", arg)
-				}
-			} else {
-				cmdArgs = append(cmdArgs, arg)
-			}
-		}
-	}
+	dirArgs, cmdArgs := options.Parse(os.Args)
+	dirArgs = FilterExistPaths(dirArgs)
 
 	if options.Bool("h") {
 		fmt.Println("Usage: gomon [options] [dir] [-- command]")
