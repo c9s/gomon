@@ -84,39 +84,39 @@ func (options Options) Parse(args []string) (dirArgs []string, cmdArgs []string)
 			hasDash = true
 			continue
 		}
-		tokens := strings.SplitN(arg, "=", 2)
-		flag, value := "", ""
-		switch len(tokens) {
-		case 1:
-			flag = tokens[0]
-			if n < nArgs-1 && !options.IsBool(flag[1:]) {
-				value = args[n+1]
-				n++
-			}
-		case 2:
-			flag = tokens[0]
-			value = tokens[1]
-		default:
-			continue
-		}
-
-		// everything after the dash, should be the command arguments
-		if !hasDash && flag[0] == '-' {
-			option := options.Get(flag[1:])
-			if option == nil {
-				log.Fatalf("Invalid option: '%v'\n", flag)
-			} else {
-				if _, ok := option.value.(string); ok {
-					option.value = value
-				} else {
-					option.value = true
-				}
-			}
+		if hasDash {
+			// everything after the dash, should be the command arguments
+			cmdArgs = append(cmdArgs, arg)
 		} else {
-			if !hasDash {
-				dirArgs = append(dirArgs, arg)
+			if arg[0] == '-' {
+				tokens := strings.SplitN(arg, "=", 2)
+				flag, value := "", ""
+				switch len(tokens) {
+				case 1:
+					flag = tokens[0]
+					if n < nArgs-1 && !options.IsBool(flag[1:]) {
+						value = args[n+1]
+						n++
+					}
+				case 2:
+					flag = tokens[0]
+					value = tokens[1]
+				default:
+					continue
+				}
+
+				option := options.Get(flag[1:])
+				if option == nil {
+					log.Fatalf("Invalid option: '%v'\n", flag)
+				} else {
+					if _, ok := option.value.(string); ok {
+						option.value = value
+					} else {
+						option.value = true
+					}
+				}
 			} else {
-				cmdArgs = append(cmdArgs, arg)
+				dirArgs = append(dirArgs, arg)
 			}
 		}
 	}
