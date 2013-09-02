@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"github.com/daviddengcn/go-colortext"
 	"github.com/mattn/go-gntp"
 )
 
@@ -49,4 +51,18 @@ func notifyFail(server string, text, callback string) {
 		Callback: callback,
 		Icon:     icon("failed"),
 	})
+}
+
+func success(msg string) {
+	ct.ChangeColor(ct.Black, true, ct.Green, true)
+	fmt.Print(msg)
+	ct.ResetColor()
+	fmt.Println()
+}
+
+func failed(msg string) {
+	ct.ChangeColor(ct.Black, true, ct.Red, true)
+	fmt.Print(msg)
+	ct.ResetColor()
+	fmt.Println()
 }
