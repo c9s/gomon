@@ -54,14 +54,14 @@ func notifyFail(server string, text, callback string) {
 }
 
 func success(msg string) {
-	ct.ChangeColor(ct.Black, true, ct.Green, true)
+	ct.ChangeColor(ct.Black, false, ct.Green, true)
 	fmt.Print(msg)
 	ct.ResetColor()
 	fmt.Println()
 }
 
 func failed(msg string) {
-	ct.ChangeColor(ct.Black, true, ct.Red, true)
+	ct.ChangeColor(ct.Black, false, ct.Red, true)
 	fmt.Print(msg)
 	ct.ResetColor()
 	fmt.Println()
