@@ -157,13 +157,13 @@ func main() {
 					// duration to avoid to run commands frequency at once
 					select {
 					case <-time.After(200 * time.Millisecond):
-						fired = false
 						err := cmds.StopTask()
 						if err != nil {
 							log.Println(err)
 						}
 						fmt.Println("Running Task:", cmds)
 						runCommand(dir)
+						fired = false
 					}
 				}(filepath.Dir(e.Name))
 			}
