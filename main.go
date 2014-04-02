@@ -128,11 +128,12 @@ func main() {
 		}
 	}
 
+	var pattern string = options.String("m")
 	var fired bool = false
 	for {
 		select {
 		case e := <-watcher.Event:
-			matched, err := regexp.MatchString("\\.(go|c|h)$", e.Name)
+			matched, err := regexp.MatchString(pattern, e.Name)
 			if err != nil {
 				log.Println(err)
 			}
