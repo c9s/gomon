@@ -37,6 +37,7 @@ func (cmd *Command) buildTask(dir *string) *exec.Cmd {
 type CommandList struct {
 	commands []Command
 	task     *exec.Cmd
+	filename string
 }
 
 func NewCommandList() *CommandList {
@@ -53,6 +54,14 @@ func (list *CommandList) AppendOption(opt string) {
 	for i, cmd := range list.commands {
 		list.commands[i] = append(cmd, "-x")
 	}
+}
+
+func (list *CommandList) ClearFilename() {
+	list.filename = ""
+}
+
+func (list *CommandList) SetFilename(filename string) {
+	list.filename = filename
 }
 
 func (list *CommandList) Len() int {
@@ -85,6 +94,9 @@ func (list *CommandList) Run(dir *string) error {
 	}
 	for _, cmd := range list.commands {
 		list.task = cmd.buildTask(dir)
+		if list.filename != "" {
+			list.task.Args = append(list.task.Args, list.filename)
+		}
 		err := list.task.Start()
 		if err != nil {
 			return err

@@ -24,6 +24,7 @@ func NewOptions() Options {
 		{"r", false, "Run `go run`"},
 		{"x", false, "Show verbose command"},
 		{"v", false, "Show version"},
+		{"F", false, "Append modified filename to command"},
 		{"d", false, "Print debug message"},
 		{"R", false, "Watch directory recursively"},
 		{"chdir", false, "Run commands on directory"},

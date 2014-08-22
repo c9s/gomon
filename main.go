@@ -100,12 +100,18 @@ func main() {
 
 	var wasFailed bool = false
 
-	runCommand := func(dir string) {
+	runCommand := func(filename string) {
 		var dirOpt *string
+		var dir = filepath.Dir(filename)
 		if options.Bool("chdir") {
 			dirOpt = &dir
 		} else {
 			dirOpt = nil
+		}
+		if options.Bool("F") {
+			cmds.SetFilename(filename)
+		} else {
+			cmds.ClearFilename()
 		}
 		err := cmds.Run(dirOpt)
 		if err != nil {
@@ -153,7 +159,7 @@ func main() {
 
 			if !fired {
 				fired = true
-				go func(dir string) {
+				go func(filename string) {
 					// duration to avoid to run commands frequency at once
 					select {
 					case <-time.After(200 * time.Millisecond):
@@ -162,10 +168,10 @@ func main() {
 							log.Println(err)
 						}
 						fmt.Println("Running Task:", cmds)
-						runCommand(dir)
+						runCommand(filename)
 						fired = false
 					}
-				}(filepath.Dir(e.Name))
+				}(e.Name)
 			}
 
 		case err := <-watcher.Error:
