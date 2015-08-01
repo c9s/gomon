@@ -2,12 +2,13 @@ package main
 
 import (
 	"fmt"
-	"github.com/howeyc/fsnotify"
 	"log"
 	"os"
 	"path/filepath"
 	"regexp"
 	"time"
+
+	"github.com/howeyc/fsnotify"
 )
 
 var versionStr = "0.1.0"
@@ -35,6 +36,11 @@ func main() {
 	if options.Bool("install-growl-icons") {
 		installGrowlIcons()
 		os.Exit(0)
+	}
+
+	matchAll := false
+	if options.Bool("matchall") {
+		matchAll = true
 	}
 
 	var cmds = CommandList{}
@@ -135,13 +141,22 @@ func main() {
 	}
 
 	var pattern string = options.String("m")
+	if len(pattern) == 0 {
+		// the empty regexp matches everything anyway
+		matchAll = true
+	}
 	var fired bool = false
+
 	for {
 		select {
 		case e := <-watcher.Event:
-			matched, err := regexp.MatchString(pattern, e.Name)
-			if err != nil {
-				log.Println(err)
+			var err error
+			matched := matchAll
+			if !matched {
+				matched, err = regexp.MatchString(pattern, e.Name)
+				if err != nil {
+					log.Println(err)
+				}
 			}
 
 			if !matched {

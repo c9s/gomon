@@ -27,6 +27,7 @@ func NewOptions() Options {
 		{"F", false, "Append modified filename to command"},
 		{"d", false, "Print debug message"},
 		{"R", false, "Watch directory recursively"},
+		{"matchall", false, "Match all files (equivalent to -m='')"},
 		{"chdir", false, "Run commands on directory"},
 		{"growl", false, "Use Growler"},
 		{"install-growl-icons", false, "Install growl icons"},
