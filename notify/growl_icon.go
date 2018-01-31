@@ -1,4 +1,4 @@
-package main
+package notify
 
 import (
 	"fmt"
@@ -35,13 +35,28 @@ func getIconDir() string {
 	return iconDirectory
 }
 
+func FileExists(path string) (bool, error) {
+	file, err := os.Open(path) // For read access.
+	if err != nil {
+		return false, err
+	}
+	_, err = file.Stat()
+	if err != nil {
+		return false, err
+	}
+	err = file.Close()
+	if err != nil {
+		return false, err
+	}
+	return true, nil
+}
+
 func icon(name string) string {
 	f := filepath.Join(getIconDir(), name+".png")
 	if _, err := FileExists(f); err == nil {
 		return f
 	}
 	return ""
-
 }
 
 func download(target, path string) {
@@ -59,7 +74,7 @@ func download(target, path string) {
 	fmt.Printf("Downloaded %s into %s\n", target, path)
 }
 
-func installGrowlIcons() {
+func InstallGrowlIcons() {
 	dir := getIconDir()
 	_, err := os.Stat(dir)
 	if err != nil {

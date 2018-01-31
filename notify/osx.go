@@ -1,5 +1,5 @@
 // +build darwin,!cgo
-package main
+package notify
 
 import (
 	"github.com/deckarep/gosx-notifier"

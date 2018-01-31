@@ -9,27 +9,28 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/c9s/gomon/notify"
 	"github.com/howeyc/fsnotify"
 )
 
 var versionStr = "0.1.0"
 
-var notifier Notifier = nil
+var notifier notify.Notifier = nil
 
 func main() {
 	dirArgs, cmdArgs := options.Parse(os.Args)
 	dirArgs = FilterExistPaths(dirArgs)
 
 	if runtime.GOOS == "darwin" {
-		notifier = NewOSXNotifier()
+		notifier = notify.NewOSXNotifier()
 	}
 	if notifier == nil {
 		if _, err := os.Stat("/Applications/Growl.app"); err == nil {
-			notifier = NewGNTPNotifier(options.String("gntp"), "gomon")
+			notifier = notify.NewGNTPNotifier(options.String("gntp"), "gomon")
 		}
 	}
 	if notifier == nil {
-		notifier = NewTextNotifier()
+		notifier = notify.NewTextNotifier()
 	}
 
 	if options.Bool("h") {
@@ -49,7 +50,7 @@ func main() {
 	}
 
 	if options.Bool("install-growl-icons") {
-		installGrowlIcons()
+		notify.InstallGrowlIcons()
 		os.Exit(0)
 	}
 
