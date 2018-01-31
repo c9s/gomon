@@ -6,6 +6,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"runtime"
 	"time"
 
 	"github.com/howeyc/fsnotify"
@@ -13,9 +14,23 @@ import (
 
 var versionStr = "0.1.0"
 
+var notifier Notifier = nil
+
 func main() {
 	dirArgs, cmdArgs := options.Parse(os.Args)
 	dirArgs = FilterExistPaths(dirArgs)
+
+	if runtime.GOOS == "darwin" {
+		notifier = NewOSXNotifier()
+	}
+	if notifier == nil {
+		if _, err := os.Stat("/Applications/Growl.app"); err == nil {
+			notifier = NewGNTPNotifier(options.String("gntp"), "gomon")
+		}
+	}
+	if notifier == nil {
+		notifier = NewTextNotifier()
+	}
 
 	if options.Bool("h") {
 		fmt.Println("Usage: gomon [options] [dir] [-- command]")
@@ -121,11 +136,8 @@ func main() {
 		}
 		err := cmds.Run(dirOpt)
 		if err != nil {
-			log.Println(err)
-			if options.Bool("growl") {
-				notifyFail(options.String("gntp"), err.Error(), "")
-			}
-			failed("Failed!")
+			log.Printf("Error=%s", err.Error())
+			notifier.NotifyFailed("Build Failed!")
 			wasFailed = true
 			return
 		}
@@ -133,10 +145,7 @@ func main() {
 		// fixed
 		if wasFailed {
 			wasFailed = false
-			if options.Bool("growl") {
-				notifyFixed(options.String("gntp"), "Congratulations! It's fixed!", "")
-			}
-			success("Congratulations! It's fixed!")
+			notifier.NotifyFixed("Congratulations! It's fixed!")
 		}
 	}
 
