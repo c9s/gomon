@@ -133,7 +133,7 @@ func main() {
 
 	var wasFailed bool = false
 
-	var runCommand = func(filename string) (time.Duration, error) {
+	var runCommand = func(filename string) (duration time.Duration, err error) {
 		var dirOpt *string
 		var dir = filepath.Dir(filename)
 		if options.Bool("chdir") {
@@ -148,9 +148,9 @@ func main() {
 		}
 
 		now := time.Now()
-		err := cmds.Run(dirOpt)
-		duration := time.Now().Sub(now)
 
+		err = cmds.Run(dirOpt)
+		duration = time.Now().Sub(now)
 		if err != nil {
 			return duration, err
 		}
