@@ -133,7 +133,7 @@ func main() {
 
 	var wasFailed bool = false
 
-	var runCommand = func(filename string) {
+	var runCommand = func(filename string) time.Duration {
 		var dirOpt *string
 		var dir = filepath.Dir(filename)
 		if options.Bool("chdir") {
@@ -146,21 +146,27 @@ func main() {
 		} else {
 			cmds.ClearFilename()
 		}
+
+		now := time.Now()
 		err := cmds.Run(dirOpt)
+		duration := time.Now().Sub(now)
+
 		if err != nil {
 			logger.Errorln(err.Error())
-			notifier.NotifyFailed("Build Failed")
+			notifier.NotifyFailed("Build Failed", err.Error())
 			wasFailed = true
-			return
+			return duration
 		}
 
 		// fixed
 		if wasFailed {
 			wasFailed = false
-			notifier.NotifyFixed("Congratulations! It's fixed!")
+			notifier.NotifyFixed("Build Fixed", fmt.Sprintf("Spent: %s", duration))
 		} else if alwaysNotify {
-			notifier.NotifySucceeded("Succeeded!")
+			notifier.NotifySucceeded("Build Succeeded", fmt.Sprintf("Spent: %s", duration))
 		}
+
+		return duration
 	}
 
 	var pattern string = options.String("m")
@@ -214,9 +220,7 @@ func main() {
 							log.Println(err)
 						}
 						logger.Infoln("Starting Task:", cmds)
-						now := time.Now()
-						runCommand(filename)
-						duration := time.Now().Sub(now)
+						var duration = runCommand(filename)
 						logger.Infoln("Task Completed:", duration)
 						fired = false
 					}

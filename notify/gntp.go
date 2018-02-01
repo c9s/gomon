@@ -33,29 +33,29 @@ func NewGNTPNotifier(server string, appName string) *GNTPNotifier {
 	return &GNTPNotifier{client}
 }
 
-func (n *GNTPNotifier) NotifySucceeded(text string) error {
+func (n *GNTPNotifier) NotifySucceeded(title, subtitle string) error {
 	return n.Client.Notify(&gntp.Message{
 		Event: "succeeded",
-		Title: "Succeeded",
-		Text:  text,
+		Title: title,
+		Text:  subtitle,
 		Icon:  icon("success"),
 	})
 }
 
-func (n *GNTPNotifier) NotifyFixed(text string) error {
+func (n *GNTPNotifier) NotifyFixed(title, subtitle string) error {
 	return n.Client.Notify(&gntp.Message{
 		Event: "succeeded",
-		Title: "Fixed",
-		Text:  text,
+		Title: title,
+		Text:  subtitle,
 		Icon:  icon("success"),
 	})
 }
 
-func (n *GNTPNotifier) NotifyFailed(text string) error {
+func (n *GNTPNotifier) NotifyFailed(title, subtitle string) error {
 	return n.Client.Notify(&gntp.Message{
 		Event: "failed",
-		Title: "Failed",
-		Text:  text,
+		Title: title,
+		Text:  subtitle,
 		Icon:  icon("failed"),
 	})
 }
