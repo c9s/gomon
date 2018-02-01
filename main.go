@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"regexp"
 	"runtime"
+	"sync"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -52,6 +53,7 @@ func main() {
 	matchAll = options.Bool("matchall")
 	alwaysNotify = options.Bool("alwaysnotify")
 
+	// dynamically build the command list
 	var cmds = CommandList{}
 	if options.Bool("f") {
 		cmds.Add(goCommands["fmt"])
@@ -78,10 +80,9 @@ func main() {
 
 	if len(cmdArgs) > 0 {
 		cmds.Add(Command(cmdArgs))
-	} else {
-		if cmds.Len() == 0 {
-			cmds.Add(goCommands["build"])
-		}
+	} else if cmds.Len() == 0 {
+		// default to go build
+		cmds.Add(goCommands["build"])
 	}
 
 	if len(dirArgs) == 0 {
@@ -132,24 +133,24 @@ func main() {
 	}
 
 	var wasFailed bool = false
+	var runner = &CommandRunner{}
 
 	var runCommand = func(filename string) (duration time.Duration, err error) {
-		var dirOpt *string
-		var dir = filepath.Dir(filename)
+		var dirOpt string = ""
+		var filedir = filepath.Dir(filename)
 		if options.Bool("chdir") {
-			dirOpt = &dir
-		} else {
-			dirOpt = nil
+			dirOpt = filedir
 		}
+
+		var args []string
+
 		if options.Bool("F") {
-			cmds.SetFilename(filename)
-		} else {
-			cmds.ClearFilename()
+			args = append(args, filename)
 		}
 
-		now := time.Now()
+		var now = time.Now()
 
-		err = cmds.Run(dirOpt)
+		err = runner.Run(cmds.commands, args, dirOpt)
 		duration = time.Now().Sub(now)
 		if err != nil {
 			return duration, err
@@ -158,23 +159,22 @@ func main() {
 		return duration, nil
 	}
 
-	var pattern string = options.String("m")
-	if len(pattern) == 0 {
+	var patternStr string = options.String("m")
+	if len(patternStr) == 0 {
 		// the empty regexp matches everything anyway
 		matchAll = true
 	}
-	var fired bool = false
+
+	var pattern = regexp.MustCompile(patternStr)
+	var timer <-chan time.Time = nil
+	var once sync.Once
 
 	for {
 		select {
 		case e := <-watcher.Event:
-			var err error
 			var matched = matchAll
 			if !matched {
-				matched, err = regexp.MatchString(pattern, e.Name)
-				if err != nil {
-					log.Println(err)
-				}
+				matched = pattern.MatchString(e.Name)
 			}
 
 			if !matched {
@@ -198,41 +198,43 @@ func main() {
 				}
 			}
 
-			if !fired {
-				fired = true
-				go func(filename string) {
+			// go fmt vim plugin will rename the file and then create a new file
+			// In order to handle the batch operation, a delay is needed.
+			timer = time.After(500 * time.Millisecond)
+			go func(filename string) {
+				once.Do(func() {
 					// duration to avoid to run commands frequency at once
-					select {
-					case <-time.After(200 * time.Millisecond):
-						var err error
-						var duration time.Duration
+					<-timer
+					var err error
+					var duration time.Duration
 
-						err = cmds.StopTask()
-						if err != nil {
-							log.Println(err)
+					if runner.IsRunning() {
+						logger.Warnln("Aborting the current running task...")
+						if err := runner.Stop(); err != nil {
+							logger.Errorf("Failed to stop the runner: %s", err.Error())
 						}
-						logger.Infoln("Starting Task:", cmds)
-						duration, err = runCommand(filename)
-						if err != nil {
-							wasFailed = true
-							logger.Errorln("Task Failed:", err.Error())
-
-							notifier.NotifyFailed("Build Failed", err.Error())
-						} else {
-							logger.Infoln("Task Completed:", duration)
-
-							if wasFailed {
-								wasFailed = false
-								notifier.NotifyFixed("Build Fixed", fmt.Sprintf("Spent: %s", duration))
-							} else if alwaysNotify {
-								notifier.NotifySucceeded("Build Succeeded", fmt.Sprintf("Spent: %s", duration))
-							}
-						}
-
-						fired = false
 					}
-				}(e.Name)
-			}
+
+					logger.Infoln("Starting Task:", cmds)
+					duration, err = runCommand(filename)
+					if err != nil {
+						wasFailed = true
+						logger.Errorln("Task Failed:", err.Error())
+
+						notifier.NotifyFailed("Build Failed", err.Error())
+					} else {
+						logger.Infoln("Task Completed:", duration)
+
+						if wasFailed {
+							wasFailed = false
+							notifier.NotifyFixed("Build Fixed", fmt.Sprintf("Spent: %s", duration))
+						} else if alwaysNotify {
+							notifier.NotifySucceeded("Build Succeeded", fmt.Sprintf("Spent: %s", duration))
+						}
+					}
+				})
+				once = sync.Once{}
+			}(e.Name)
 
 		case err := <-watcher.Error:
 			log.Println("Error:", err)
