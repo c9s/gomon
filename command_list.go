@@ -1,14 +1,11 @@
 package main
 
 import (
-	"os/exec"
 	"strings"
 )
 
 type CommandList struct {
 	commands []Command
-	task     *exec.Cmd
-	filename string
 }
 
 func NewCommandList() *CommandList {

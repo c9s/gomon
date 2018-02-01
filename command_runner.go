@@ -31,12 +31,11 @@ func (r *CommandRunner) Run(commands []Command, args []string, dir string) error
 		// Append the arguments to the task arguments
 		r.task.Args = append(r.task.Args, args...)
 
-		err := r.task.Start()
-		if err != nil {
+		if err := r.task.Start(); err != nil {
 			return err
 		}
-		err = r.task.Wait()
-		if err != nil {
+
+		if err := r.task.Wait(); err != nil {
 			return err
 		}
 	}

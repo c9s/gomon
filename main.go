@@ -21,6 +21,43 @@ var versionStr = "0.1.0"
 
 var notifier notify.Notifier = nil
 
+type FileBasedTaskRunner struct {
+	Runner         *CommandRunner
+	Commands       []Command
+	AppendFilename bool
+	Chdir          bool
+}
+
+func (r *FileBasedTaskRunner) Run(filename string) (duration time.Duration, err error) {
+	if r.Runner.IsRunning() {
+		logger.Warnln("Aborting the current running task...")
+		if err := r.Runner.Stop(); err != nil {
+			logger.Errorf("Failed to stop the runner: %s", err.Error())
+		}
+	}
+
+	var chdir = ""
+	if r.Chdir {
+		chdir = filepath.Dir(filename)
+	}
+
+	var args []string
+	if r.AppendFilename {
+		args = append(args, filename)
+	}
+
+	logger.Infof("Starting: chdir=%s commands=%v args=%v", chdir, r.Commands, args)
+
+	var now = time.Now()
+	err = r.Runner.Run(r.Commands, args, chdir)
+	duration = time.Now().Sub(now)
+	if err != nil {
+		return duration, err
+	}
+
+	return duration, nil
+}
+
 func main() {
 	dirArgs, cmdArgs := options.Parse(os.Args)
 	dirArgs = FilterExistPaths(dirArgs)
@@ -134,29 +171,15 @@ func main() {
 
 	var wasFailed bool = false
 	var runner = &CommandRunner{}
+	var taskRunner = &FileBasedTaskRunner{
+		Runner:         runner,
+		Commands:       cmds.commands,
+		AppendFilename: options.Bool("F"),
+		Chdir:          options.Bool("chdir"),
+	}
 
 	var runCommand = func(filename string) (duration time.Duration, err error) {
-		var dirOpt string = ""
-		var filedir = filepath.Dir(filename)
-		if options.Bool("chdir") {
-			dirOpt = filedir
-		}
-
-		var args []string
-
-		if options.Bool("F") {
-			args = append(args, filename)
-		}
-
-		var now = time.Now()
-
-		err = runner.Run(cmds.commands, args, dirOpt)
-		duration = time.Now().Sub(now)
-		if err != nil {
-			return duration, err
-		}
-
-		return duration, nil
+		return taskRunner.Run(filename)
 	}
 
 	var patternStr string = options.String("m")
@@ -198,6 +221,7 @@ func main() {
 				}
 			}
 
+			// TODO: time.ParseDuration
 			// go fmt vim plugin will rename the file and then create a new file
 			// In order to handle the batch operation, a delay is needed.
 			timer = time.After(500 * time.Millisecond)
@@ -208,14 +232,6 @@ func main() {
 					var err error
 					var duration time.Duration
 
-					if runner.IsRunning() {
-						logger.Warnln("Aborting the current running task...")
-						if err := runner.Stop(); err != nil {
-							logger.Errorf("Failed to stop the runner: %s", err.Error())
-						}
-					}
-
-					logger.Infoln("Starting Task:", cmds)
 					duration, err = runCommand(filename)
 					if err != nil {
 						wasFailed = true
