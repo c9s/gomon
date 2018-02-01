@@ -133,7 +133,7 @@ func main() {
 
 	var wasFailed bool = false
 
-	var runCommand = func(filename string) time.Duration {
+	var runCommand = func(filename string) (time.Duration, error) {
 		var dirOpt *string
 		var dir = filepath.Dir(filename)
 		if options.Bool("chdir") {
@@ -152,21 +152,10 @@ func main() {
 		duration := time.Now().Sub(now)
 
 		if err != nil {
-			logger.Errorln(err.Error())
-			notifier.NotifyFailed("Build Failed", err.Error())
-			wasFailed = true
-			return duration
+			return duration, err
 		}
 
-		// fixed
-		if wasFailed {
-			wasFailed = false
-			notifier.NotifyFixed("Build Fixed", fmt.Sprintf("Spent: %s", duration))
-		} else if alwaysNotify {
-			notifier.NotifySucceeded("Build Succeeded", fmt.Sprintf("Spent: %s", duration))
-		}
-
-		return duration
+		return duration, nil
 	}
 
 	var pattern string = options.String("m")
@@ -215,13 +204,31 @@ func main() {
 					// duration to avoid to run commands frequency at once
 					select {
 					case <-time.After(200 * time.Millisecond):
-						err := cmds.StopTask()
+						var err error
+						var duration time.Duration
+
+						err = cmds.StopTask()
 						if err != nil {
 							log.Println(err)
 						}
 						logger.Infoln("Starting Task:", cmds)
-						var duration = runCommand(filename)
-						logger.Infoln("Task Completed:", duration)
+						duration, err = runCommand(filename)
+						if err != nil {
+							wasFailed = true
+							logger.Errorln("Task Failed:", err.Error())
+
+							notifier.NotifyFailed("Build Failed", err.Error())
+						} else {
+							logger.Infoln("Task Completed:", duration)
+
+							if wasFailed {
+								wasFailed = false
+								notifier.NotifyFixed("Build Fixed", fmt.Sprintf("Spent: %s", duration))
+							} else if alwaysNotify {
+								notifier.NotifySucceeded("Build Succeeded", fmt.Sprintf("Spent: %s", duration))
+							}
+						}
+
 						fired = false
 					}
 				}(e.Name)
