@@ -9,6 +9,9 @@ import (
 	"runtime"
 	"time"
 
+	"github.com/sirupsen/logrus"
+
+	"github.com/c9s/gomon/logger"
 	"github.com/c9s/gomon/notify"
 	"github.com/howeyc/fsnotify"
 )
@@ -21,17 +24,8 @@ func main() {
 	dirArgs, cmdArgs := options.Parse(os.Args)
 	dirArgs = FilterExistPaths(dirArgs)
 
-	if runtime.GOOS == "darwin" {
-		notifier = notify.NewOSXNotifier()
-	}
-	if notifier == nil {
-		if _, err := os.Stat("/Applications/Growl.app"); err == nil {
-			notifier = notify.NewGNTPNotifier(options.String("gntp"), "gomon")
-		}
-	}
-	if notifier == nil {
-		notifier = notify.NewTextNotifier()
-	}
+	var matchAll = false
+	var alwaysNotify = false
 
 	if options.Bool("h") {
 		fmt.Println("Usage: gomon [options] [dir] [-- command]")
@@ -52,12 +46,11 @@ func main() {
 	if options.Bool("install-growl-icons") {
 		notify.InstallGrowlIcons()
 		os.Exit(0)
+		return
 	}
 
-	matchAll := false
-	if options.Bool("matchall") {
-		matchAll = true
-	}
+	matchAll = options.Bool("matchall")
+	alwaysNotify = options.Bool("alwaysnotify")
 
 	var cmds = CommandList{}
 	if options.Bool("f") {
@@ -78,6 +71,11 @@ func main() {
 	if options.Bool("x") {
 		cmds.AppendOption("-x")
 	}
+
+	if options.Bool("d") {
+		logger.Instance().SetLevel(logrus.DebugLevel)
+	}
+
 	if len(cmdArgs) > 0 {
 		cmds.Add(Command(cmdArgs))
 	} else {
@@ -89,13 +87,26 @@ func main() {
 	if len(dirArgs) == 0 {
 		var cwd, err = os.Getwd()
 		if err != nil {
-			fmt.Println(err)
-			os.Exit(1)
+			log.Fatal(err)
 		}
 		dirArgs = []string{cwd}
 	}
 
-	fmt.Println("Watching", dirArgs, "for", cmds)
+	if runtime.GOOS == "darwin" {
+		logger.Infoln("Setting up Notification Center for OS X ...")
+		notifier = notify.NewOSXNotifier()
+	}
+	if notifier == nil {
+		if _, err := os.Stat("/Applications/Growl.app"); err == nil {
+			logger.Infoln("Found Growl.app, setting up GNTP notifier...")
+			notifier = notify.NewGNTPNotifier(options.String("gntp"), "gomon")
+		}
+	}
+	if notifier == nil {
+		notifier = notify.NewTextNotifier()
+	}
+
+	logger.Infoln("Watching", dirArgs, "for", cmds)
 
 	watcher, err := fsnotify.NewWatcher()
 
@@ -122,7 +133,7 @@ func main() {
 
 	var wasFailed bool = false
 
-	runCommand := func(filename string) {
+	var runCommand = func(filename string) {
 		var dirOpt *string
 		var dir = filepath.Dir(filename)
 		if options.Bool("chdir") {
@@ -137,8 +148,8 @@ func main() {
 		}
 		err := cmds.Run(dirOpt)
 		if err != nil {
-			log.Printf("Error=%s", err.Error())
-			notifier.NotifyFailed("Build Failed!")
+			logger.Errorln(err.Error())
+			notifier.NotifyFailed("Build Failed")
 			wasFailed = true
 			return
 		}
@@ -147,6 +158,8 @@ func main() {
 		if wasFailed {
 			wasFailed = false
 			notifier.NotifyFixed("Congratulations! It's fixed!")
+		} else if alwaysNotify {
+			notifier.NotifySucceeded("Succeeded!")
 		}
 	}
 
@@ -161,7 +174,7 @@ func main() {
 		select {
 		case e := <-watcher.Event:
 			var err error
-			matched := matchAll
+			var matched = matchAll
 			if !matched {
 				matched, err = regexp.MatchString(pattern, e.Name)
 				if err != nil {
@@ -171,15 +184,23 @@ func main() {
 
 			if !matched {
 				if options.Bool("d") {
-					log.Println("Ignore:", e)
+					logger.Debugf("Ignored file=%s", e)
 				}
 				continue
 			}
 
 			if options.Bool("d") {
-				log.Println("Event:", e)
+				logger.Debugf("Event=%+v", e)
 			} else {
-				log.Println(e.Name)
+				if e.IsCreate() {
+					logger.Infoln("Created", e.Name)
+				} else if e.IsModify() {
+					logger.Infoln("Modified", e.Name)
+				} else if e.IsDelete() {
+					logger.Infoln("Deleted", e.Name)
+				} else if e.IsRename() {
+					logger.Infoln("Renamed", e.Name)
+				}
 			}
 
 			if !fired {
@@ -192,8 +213,11 @@ func main() {
 						if err != nil {
 							log.Println(err)
 						}
-						fmt.Println("Running Task:", cmds)
+						logger.Infoln("Starting Task:", cmds)
+						now := time.Now()
 						runCommand(filename)
+						duration := time.Now().Sub(now)
+						logger.Infoln("Task Completed:", duration)
 						fired = false
 					}
 				}(e.Name)

@@ -2,10 +2,11 @@ package main
 
 import (
 	"errors"
-	"fmt"
 	"os"
 	"os/exec"
 	"strings"
+
+	"github.com/c9s/gomon/logger"
 )
 
 var goCommands = map[string][]string{
@@ -82,7 +83,7 @@ func (list *CommandList) IsTaskRunning() bool {
 
 func (list *CommandList) StopTask() error {
 	if list.IsTaskRunning() {
-		fmt.Println("Stopping Task...")
+		logger.Warnln("Aborting the current running task...")
 		return list.task.Process.Kill()
 	}
 	return nil
