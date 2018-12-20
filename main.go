@@ -64,6 +64,7 @@ func main() {
 
 	var matchAll = false
 	var alwaysNotify = false
+	var notifyOff = false
 
 	if options.Bool("h") {
 		fmt.Println("Usage: gomon [options] [dir] [-- command]")
@@ -89,6 +90,7 @@ func main() {
 
 	matchAll = options.Bool("matchall")
 	alwaysNotify = options.Bool("alwaysnotify")
+	notifyOff = options.Bool("notifyoff")
 
 	// dynamically build the command list
 	var cmds = CommandList{}
@@ -130,11 +132,11 @@ func main() {
 		dirArgs = []string{cwd}
 	}
 
-	if runtime.GOOS == "darwin" {
+	if !notifyOff && runtime.GOOS == "darwin" {
 		logger.Infoln("Setting up Notification Center for OS X ...")
 		notifier = notify.NewOSXNotifier()
 	}
-	if notifier == nil {
+	if !notifyOff && notifier == nil {
 		if _, err := os.Stat("/Applications/Growl.app"); err == nil {
 			logger.Infoln("Found Growl.app, setting up GNTP notifier...")
 			notifier = notify.NewGNTPNotifier(options.String("gntp"), "gomon")
