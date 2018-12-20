@@ -29,7 +29,7 @@ func NewOptions() Options {
 		{"R", false, "Watch directory recursively"},
 		{"matchall", false, "Match all files (equivalent to -m='')"},
 		{"alwaysnotify", false, "Always send notification"},
-		{"notifyoff", false, "Turn notification off"},
+		{"notify", "", "Select notifier: osx / growl / off"},
 		{"chdir", false, "Run commands on directory"},
 		{"growl", false, "Use Growler"},
 		{"install-growl-icons", false, "Install growl icons"},
