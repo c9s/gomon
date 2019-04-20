@@ -1,4 +1,5 @@
 // +build darwin,!cgo
+
 package notify
 
 import (
