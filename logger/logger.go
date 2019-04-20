@@ -1,6 +1,10 @@
 package logger
 
 import (
+	"os"
+	"runtime"
+
+	"github.com/mattn/go-colorable"
 	"github.com/sirupsen/logrus"
 	"github.com/x-cray/logrus-prefixed-formatter"
 )
@@ -12,7 +16,16 @@ func Instance() *logrus.Logger {
 }
 
 func init() {
-	logger.Formatter = new(prefixed.TextFormatter)
+	if runtime.GOOS == "windows" {
+		logger.Formatter = &logrus.TextFormatter{
+			EnvironmentOverrideColors: true,
+			ForceColors:               true,
+		}
+		os.Setenv("CLICOLOR_FORCE", "1")
+		logger.Out = colorable.NewColorableStdout()
+	} else {
+		logger.Formatter = new(prefixed.TextFormatter)
+	}
 	logger.Level = logrus.DebugLevel
 }
 
