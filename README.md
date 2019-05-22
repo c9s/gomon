@@ -47,11 +47,18 @@ Monitoring Directory And Build Automatically With Verbose Messages:
 
     gomon -b -x path/to/package
 
+Monitoring Current Directory Recursively:
+
+    gomon -R
+
 Monitoring With Custom Command:
 
     gomon src -- go run -x server.go # execute go run -x server.go
     gomon src -- go build -x package # execute go build -x package
 
+Turn Off Notification
+
+    gomon -notifyoff
 
 Screenshot
 ----------
