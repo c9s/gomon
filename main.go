@@ -147,10 +147,11 @@ func main() {
 	logger.Infoln("Watching", dirArgs, "for", cmds)
 
 	watcher, err := fsnotify.NewWatcher()
-
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(err)
+		return
 	}
+	defer watcher.Close()
 
 	for _, dir := range dirArgs {
 		if options.Bool("R") {
@@ -235,11 +236,10 @@ func main() {
 					duration, err = runCommand(filename)
 					if err != nil {
 						wasFailed = true
-						logger.Errorln("Task Failed:", err.Error())
-
+						logger.Errorf("Build Failed: %v", err.Error())
 						notifier.NotifyFailed("Build Failed", err.Error())
 					} else {
-						logger.Infoln("Task Completed:", duration)
+						logger.Infoln("Successful Build:", duration)
 
 						if wasFailed {
 							wasFailed = false
@@ -257,5 +257,4 @@ func main() {
 		}
 	}
 
-	watcher.Close()
 }

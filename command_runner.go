@@ -3,17 +3,29 @@ package main
 import (
 	"os"
 	"os/exec"
+	"sync"
 )
 
 type CommandRunner struct {
-	// arguments that will be passed the the commands
+	// args is an argument array that will be passed the the commands
 	args []string
 
+	// task is the current executing command
 	task *exec.Cmd
+
+	mu sync.Mutex
+}
+
+func (r *CommandRunner) Task() (task *exec.Cmd) {
+	r.mu.Lock()
+	task = r.task
+	r.mu.Unlock()
+	return task
 }
 
 func (r *CommandRunner) IsRunning() bool {
-	return r.task != nil && r.task.ProcessState != nil && !r.task.ProcessState.Exited()
+	var task = r.Task()
+	return task != nil && task.ProcessState != nil && !task.ProcessState.Exited()
 }
 
 func (r *CommandRunner) buildTask(cmd Command, dir string) *exec.Cmd {
@@ -26,25 +38,30 @@ func (r *CommandRunner) buildTask(cmd Command, dir string) *exec.Cmd {
 
 func (r *CommandRunner) Run(commands []Command, args []string, dir string) error {
 	for _, cmd := range commands {
-		r.task = r.buildTask(cmd, dir)
+		{
+			var task = r.buildTask(cmd, dir)
+			task.Args = append(task.Args, args...)
 
-		// Append the arguments to the task arguments
-		r.task.Args = append(r.task.Args, args...)
+			r.mu.Lock()
+			r.task = task
+			r.mu.Unlock()
 
-		if err := r.task.Start(); err != nil {
-			return err
-		}
+			if err := task.Start(); err != nil {
+				return err
+			}
 
-		if err := r.task.Wait(); err != nil {
-			return err
+			if err := task.Wait(); err != nil {
+				return err
+			}
 		}
 	}
 	return nil
 }
 
 func (r *CommandRunner) Stop() error {
-	if r.task != nil {
-		return r.task.Process.Kill()
+	var task = r.Task()
+	if task != nil {
+		return task.Process.Kill()
 	}
 	return nil
 }
