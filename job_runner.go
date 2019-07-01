@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"fmt"
 	"sync"
 	"time"
 
@@ -11,14 +12,38 @@ import (
 type JobRunner struct {
 	builder *JobBuilder
 
-	lastJob *Job
+	lastJob          *Job
+	previouslyFailed bool
 
 	mu     sync.Mutex
 	ctx    context.Context
 	cancel func()
 }
 
-func (r *JobRunner) Run(filename string) (duration time.Duration, err error) {
+func (r *JobRunner) RunAndNotify(ctx context.Context, filename string, alwaysNotify bool) (duration time.Duration, err error) {
+	duration, err = r.Run(ctx, filename)
+
+	if err != nil {
+		r.mu.Lock()
+		r.previouslyFailed = true
+		r.mu.Unlock()
+
+		notifier.NotifyFailed("Build failed", err.Error())
+	} else {
+		r.mu.Lock()
+		if r.previouslyFailed {
+			r.previouslyFailed = false
+
+			notifier.NotifyFixed("Build fixed", fmt.Sprintf("Spent: %s", duration))
+		} else if alwaysNotify {
+			notifier.NotifySucceeded("Build succeeded", fmt.Sprintf("Spent: %s", duration))
+		}
+		r.mu.Unlock()
+	}
+	return
+}
+
+func (r *JobRunner) Run(basectx context.Context, filename string) (duration time.Duration, err error) {
 	r.mu.Lock()
 
 	if r.ctx != nil {
@@ -35,7 +60,7 @@ func (r *JobRunner) Run(filename string) (duration time.Duration, err error) {
 	}
 
 	// allocate a new context
-	r.ctx, r.cancel = context.WithCancel(context.Background())
+	r.ctx, r.cancel = context.WithCancel(basectx)
 
 	var ctx = r.ctx
 	var job = r.builder.Create(filename)
@@ -47,6 +72,13 @@ func (r *JobRunner) Run(filename string) (duration time.Duration, err error) {
 	var now = time.Now()
 	err = job.Run(ctx)
 	duration = time.Now().Sub(now)
+
+	r.mu.Lock()
+	r.lastJob = nil
+	r.ctx = nil
+	r.cancel = nil
+	r.mu.Unlock()
+
 	if err != nil {
 		return duration, err
 	}

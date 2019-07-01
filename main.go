@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -132,8 +133,6 @@ func main() {
 		}
 	}
 
-	var wasFailed bool = false
-
 	var jobRunner = &JobRunner{
 		builder: &JobBuilder{
 			// Job template arguments
@@ -142,10 +141,6 @@ func main() {
 			AppendFilename:  options.Bool("F"),
 			ChangeDirectory: options.Bool("chdir"),
 		},
-	}
-
-	var runCommand = func(filename string) (duration time.Duration, err error) {
-		return jobRunner.Run(filename)
 	}
 
 	var patternStr string = options.String("m")
@@ -198,20 +193,11 @@ func main() {
 					var err error
 					var duration time.Duration
 
-					duration, err = runCommand(filename)
+					duration, err = jobRunner.RunAndNotify(context.Background(), filename, alwaysNotify)
 					if err != nil {
-						wasFailed = true
 						logger.Errorf("Build failed: %v", err.Error())
-						notifier.NotifyFailed("Build failed", err.Error())
 					} else {
 						logger.Infoln("Successful build:", duration)
-
-						if wasFailed {
-							wasFailed = false
-							notifier.NotifyFixed("Build fixed", fmt.Sprintf("Spent: %s", duration))
-						} else if alwaysNotify {
-							notifier.NotifySucceeded("Build succeeded", fmt.Sprintf("Spent: %s", duration))
-						}
 					}
 				})
 				once = sync.Once{}
