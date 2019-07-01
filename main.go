@@ -14,7 +14,7 @@ import (
 
 	"github.com/c9s/gomon/logger"
 	"github.com/c9s/gomon/notify"
-	"github.com/howeyc/fsnotify"
+	"github.com/fsnotify/fsnotify"
 )
 
 var versionStr = "0.1.0"
@@ -156,13 +156,13 @@ func main() {
 		if options.Bool("R") {
 			subfolders := Subfolders(dir)
 			for _, f := range subfolders {
-				err = watcher.WatchFlags(f, fsnotify.FSN_ALL)
+				err = watcher.Add(f)
 				if err != nil {
 					log.Fatal(err)
 				}
 			}
 		} else {
-			err = watcher.WatchFlags(dir, fsnotify.FSN_ALL)
+			err = watcher.Add(dir)
 			if err != nil {
 				log.Fatal(err)
 			}
@@ -194,7 +194,7 @@ func main() {
 
 	for {
 		select {
-		case e := <-watcher.Event:
+		case e := <-watcher.Events:
 			var matched = matchAll
 			if !matched {
 				matched = pattern.MatchString(e.Name)
@@ -210,14 +210,15 @@ func main() {
 			if options.Bool("d") {
 				logger.Debugf("Event=%+v", e)
 			} else {
-				if e.IsCreate() {
-					logger.Infoln("Created", e.Name)
-				} else if e.IsModify() {
-					logger.Infoln("Modified", e.Name)
-				} else if e.IsDelete() {
-					logger.Infoln("Deleted", e.Name)
-				} else if e.IsRename() {
-					logger.Infoln("Renamed", e.Name)
+				switch e.Op {
+				case fsnotify.Create:
+					logger.Infoln("Create", e.Name)
+				case fsnotify.Write:
+					logger.Infoln("Write", e.Name)
+				case fsnotify.Remove:
+					logger.Infoln("Remove", e.Name)
+				case fsnotify.Rename:
+					logger.Infoln("Rename", e.Name)
 				}
 			}
 
@@ -252,7 +253,7 @@ func main() {
 				once = sync.Once{}
 			}(e.Name)
 
-		case err := <-watcher.Error:
+		case err := <-watcher.Errors:
 			log.Println("Error:", err)
 		}
 	}
