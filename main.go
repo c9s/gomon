@@ -151,9 +151,17 @@ func main() {
 
 	var pattern = regexp.MustCompile(patternStr)
 	var once sync.Once
+	var ctx = context.Background()
 
 	for {
 		select {
+
+		case <-ctx.Done():
+			return
+
+		case err := <-watcher.Errors:
+			log.Println("Error:", err)
+
 		case e := <-watcher.Events:
 			var matched = matchAll
 			if !matched {
@@ -190,10 +198,7 @@ func main() {
 					var timer = time.After(500 * time.Millisecond)
 					// duration to avoid to run commands frequency at once
 					<-timer
-					var err error
-					var duration time.Duration
-
-					duration, err = jobRunner.RunAndNotify(context.Background(), filename, alwaysNotify)
+					var duration, err = jobRunner.RunAndNotify(context.Background(), filename, alwaysNotify)
 					if err != nil {
 						logger.Errorf("Build failed: %v", err.Error())
 					} else {
@@ -203,8 +208,6 @@ func main() {
 				once = sync.Once{}
 			}(e.Name)
 
-		case err := <-watcher.Errors:
-			log.Println("Error:", err)
 		}
 	}
 
