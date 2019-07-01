@@ -22,35 +22,75 @@ var versionStr = "0.1.0"
 
 var notifier notify.Notifier = nil
 
-type FileBasedTaskRunner struct {
-	Runner         *CommandRunner
-	Commands       []Command
-	AppendFilename bool
-	Chdir          bool
+type JobBuilder struct {
+	// Job template arguments
+	Commands []Command
+	Args     []string
+
+	// template options
+	ChangeDirectory bool
+	AppendFilename  bool
 }
 
-func (r *FileBasedTaskRunner) Run(filename string) (duration time.Duration, err error) {
-	if r.Runner.IsRunning() {
-		logger.Warnln("Aborting the current running task...")
-		if err := r.Runner.Stop(); err != nil {
-			logger.Errorf("Failed to stop the runner: %s", err.Error())
-		}
-	}
-
+func (t *JobBuilder) Create(filename string) *Job {
 	var chdir = ""
-	if r.Chdir {
+	if t.ChangeDirectory {
 		chdir = filepath.Dir(filename)
 	}
 
 	var args []string
-	if r.AppendFilename {
+
+	copy(args, t.Args)
+
+	if t.AppendFilename {
 		args = append(args, filename)
 	}
 
-	logger.Infof("Starting: chdir=%s commands=%v args=%v", chdir, r.Commands, args)
+	return &Job{
+		commands: t.Commands,
+		args:     args,
+		dir:      chdir,
+	}
+}
 
+type JobRunner struct {
+	builder *JobBuilder
+
+	lastJob *Job
+
+	mu     sync.Mutex
+	ctx    context.Context
+	cancel func()
+}
+
+func (r *JobRunner) Run(filename string) (duration time.Duration, err error) {
+	r.mu.Lock()
+
+	if r.ctx != nil {
+		logger.Warnln("Canceling previous context")
+		r.cancel()
+		r.ctx = nil
+		r.cancel = nil
+	}
+	if r.lastJob != nil {
+		logger.Infof("Stopping job: %v", r.lastJob)
+		if err := r.lastJob.StopAndWait(); err != nil {
+			logger.Errorf("Failed to stop job. error=%v", err)
+		}
+	}
+
+	// allocate a new context
+	r.ctx, r.cancel = context.WithCancel(context.Background())
+
+	var ctx = r.ctx
+	var job = r.builder.Create(filename)
+
+	r.lastJob = job
+	r.mu.Unlock()
+
+	logger.Infof("Starting: commands=%v args=%v", job.commands, job.args)
 	var now = time.Now()
-	err = r.Runner.Run(context.Background(), r.Commands, args, chdir)
+	err = job.Run(ctx)
 	duration = time.Now().Sub(now)
 	if err != nil {
 		return duration, err
@@ -172,13 +212,16 @@ func main() {
 	}
 
 	var wasFailed bool = false
-	var runner = &CommandRunner{}
 
-	var taskRunner = &FileBasedTaskRunner{
-		Runner:         runner,
-		Commands:       cmds.commands,
-		AppendFilename: options.Bool("F"),
-		Chdir:          options.Bool("chdir"),
+	var jobBuilder = &JobBuilder{
+		// Job template arguments
+		Commands:        cmds.commands,
+		Args:            []string{},
+		AppendFilename:  options.Bool("F"),
+		ChangeDirectory: options.Bool("chdir"),
+	}
+	var taskRunner = &JobRunner{
+		builder: jobBuilder,
 	}
 
 	var runCommand = func(filename string) (duration time.Duration, err error) {
@@ -238,16 +281,16 @@ func main() {
 					duration, err = runCommand(filename)
 					if err != nil {
 						wasFailed = true
-						logger.Errorf("Build Failed: %v", err.Error())
-						notifier.NotifyFailed("Build Failed", err.Error())
+						logger.Errorf("Build failed: %v", err.Error())
+						notifier.NotifyFailed("Build failed", err.Error())
 					} else {
-						logger.Infoln("Successful Build:", duration)
+						logger.Infoln("Successful build:", duration)
 
 						if wasFailed {
 							wasFailed = false
-							notifier.NotifyFixed("Build Fixed", fmt.Sprintf("Spent: %s", duration))
+							notifier.NotifyFixed("Build fixed", fmt.Sprintf("Spent: %s", duration))
 						} else if alwaysNotify {
-							notifier.NotifySucceeded("Build Succeeded", fmt.Sprintf("Spent: %s", duration))
+							notifier.NotifySucceeded("Build succeeded", fmt.Sprintf("Spent: %s", duration))
 						}
 					}
 				})

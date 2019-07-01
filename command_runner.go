@@ -7,40 +7,28 @@ import (
 	"sync"
 )
 
-type CommandRunner struct {
-	// args is an argument array that will be passed the the commands
-	args []string
+type Job struct {
+	commands []Command
+	args     []string
+	dir      string
 
-	// task is the current executing command
-	task *exec.Cmd
-
-	mu sync.Mutex
+	// currentTask is the current executing command
+	currentTask *exec.Cmd
+	mu          sync.Mutex
 }
 
-func (r *CommandRunner) Task() (task *exec.Cmd) {
-	r.mu.Lock()
-	task = r.task
-	r.mu.Unlock()
-	return task
-}
-
-func (r *CommandRunner) IsRunning() bool {
-	var task = r.Task()
+func (job *Job) IsRunning() bool {
+	var task = job.currentTask
 	return task != nil && task.ProcessState != nil && !task.ProcessState.Exited()
 }
 
-func buildTask(ctx context.Context, cmd Command, dir string, args []string) *exec.Cmd {
-	var p = exec.CommandContext(ctx, cmd[0], cmd[1:]...)
-	p.Stdout = os.Stdout
-	p.Stderr = os.Stderr
-	p.Dir = dir
-	p.Args = append(p.Args, args...)
-	return p
-}
-
-func (r *CommandRunner) Run(ctx context.Context, commands []Command, args []string, dir string) error {
-	for _, cmd := range commands {
-		var task = buildTask(ctx, cmd, dir, args)
+func (job *Job) Run(ctx context.Context) error {
+	for _, cmd := range job.commands {
+		job.mu.Lock()
+		var task = buildTask(ctx, cmd, job.args)
+		task.Dir = job.dir
+		job.currentTask = task
+		job.mu.Unlock()
 
 		select {
 		case <-ctx.Done():
@@ -59,12 +47,34 @@ func (r *CommandRunner) Run(ctx context.Context, commands []Command, args []stri
 	return nil
 }
 
-func (r *CommandRunner) Stop() (err error) {
-	r.mu.Lock()
-	if r.task != nil {
-		err = r.task.Process.Kill()
-		r.task = nil
+func (job *Job) StopAndWait() (err error) {
+	job.mu.Lock()
+	defer job.mu.Unlock()
+
+	if job.currentTask != nil {
+		task := job.currentTask
+
+		if !task.ProcessState.Exited() {
+			err = task.Process.Kill()
+			if err != nil {
+				return err
+			}
+
+			err = task.Wait()
+			if err != nil {
+				return err
+			}
+		}
+
+		job.currentTask = nil
 	}
-	r.mu.Unlock()
 	return err
+}
+
+func buildTask(ctx context.Context, cmd Command, args []string) *exec.Cmd {
+	var p = exec.CommandContext(ctx, cmd[0], cmd[1:]...)
+	p.Stdout = os.Stdout
+	p.Stderr = os.Stderr
+	p.Args = append(p.Args, args...)
+	return p
 }
