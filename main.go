@@ -150,7 +150,6 @@ func main() {
 	}
 
 	var pattern = regexp.MustCompile(patternStr)
-	var timer <-chan time.Time = nil
 	var once sync.Once
 
 	for {
@@ -186,9 +185,9 @@ func main() {
 			// TODO: time.ParseDuration
 			// go fmt vim plugin will rename the file and then create a new file
 			// In order to handle the batch operation, a delay is needed.
-			timer = time.After(500 * time.Millisecond)
 			go func(filename string) {
 				once.Do(func() {
+					var timer = time.After(500 * time.Millisecond)
 					// duration to avoid to run commands frequency at once
 					<-timer
 					var err error
