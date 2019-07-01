@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"os"
 	"os/exec"
 	"sync"
@@ -28,40 +29,42 @@ func (r *CommandRunner) IsRunning() bool {
 	return task != nil && task.ProcessState != nil && !task.ProcessState.Exited()
 }
 
-func (r *CommandRunner) buildTask(cmd Command, dir string) *exec.Cmd {
-	p := exec.Command(cmd[0], cmd[1:]...)
+func buildTask(ctx context.Context, cmd Command, dir string, args []string) *exec.Cmd {
+	var p = exec.CommandContext(ctx, cmd[0], cmd[1:]...)
 	p.Stdout = os.Stdout
 	p.Stderr = os.Stderr
 	p.Dir = dir
+	p.Args = append(p.Args, args...)
 	return p
 }
 
-func (r *CommandRunner) Run(commands []Command, args []string, dir string) error {
+func (r *CommandRunner) Run(ctx context.Context, commands []Command, args []string, dir string) error {
 	for _, cmd := range commands {
-		{
-			var task = r.buildTask(cmd, dir)
-			task.Args = append(task.Args, args...)
+		var task = buildTask(ctx, cmd, dir, args)
 
-			r.mu.Lock()
-			r.task = task
-			r.mu.Unlock()
+		select {
+		case <-ctx.Done():
+			return nil
+		default:
+		}
 
-			if err := task.Start(); err != nil {
-				return err
-			}
+		if err := task.Start(); err != nil {
+			return err
+		}
 
-			if err := task.Wait(); err != nil {
-				return err
-			}
+		if err := task.Wait(); err != nil {
+			return err
 		}
 	}
 	return nil
 }
 
-func (r *CommandRunner) Stop() error {
-	var task = r.Task()
-	if task != nil {
-		return task.Process.Kill()
+func (r *CommandRunner) Stop() (err error) {
+	r.mu.Lock()
+	if r.task != nil {
+		err = r.task.Process.Kill()
+		r.task = nil
 	}
-	return nil
+	r.mu.Unlock()
+	return err
 }

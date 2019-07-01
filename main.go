@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
@@ -49,7 +50,7 @@ func (r *FileBasedTaskRunner) Run(filename string) (duration time.Duration, err 
 	logger.Infof("Starting: chdir=%s commands=%v args=%v", chdir, r.Commands, args)
 
 	var now = time.Now()
-	err = r.Runner.Run(r.Commands, args, chdir)
+	err = r.Runner.Run(context.Background(), r.Commands, args, chdir)
 	duration = time.Now().Sub(now)
 	if err != nil {
 		return duration, err
@@ -172,6 +173,7 @@ func main() {
 
 	var wasFailed bool = false
 	var runner = &CommandRunner{}
+
 	var taskRunner = &FileBasedTaskRunner{
 		Runner:         runner,
 		Commands:       cmds.commands,
