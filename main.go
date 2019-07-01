@@ -195,9 +195,9 @@ func main() {
 			// In order to handle the batch operation, a delay is needed.
 			go func(filename string) {
 				once.Do(func() {
-					var timer = time.After(500 * time.Millisecond)
 					// duration to avoid to run commands frequency at once
-					<-timer
+					<-time.After(500 * time.Millisecond)
+
 					var duration, err = jobRunner.RunAndNotify(context.Background(), filename, alwaysNotify)
 					if err != nil {
 						logger.Errorf("Build failed: %v", err.Error())
