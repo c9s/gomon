@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"regexp"
 	"runtime"
 	"sync"
@@ -21,83 +20,6 @@ import (
 var versionStr = "0.1.0"
 
 var notifier notify.Notifier = nil
-
-type JobBuilder struct {
-	// Job template arguments
-	Commands []Command
-	Args     []string
-
-	// template options
-	ChangeDirectory bool
-	AppendFilename  bool
-}
-
-func (t *JobBuilder) Create(filename string) *Job {
-	var chdir = ""
-	if t.ChangeDirectory {
-		chdir = filepath.Dir(filename)
-	}
-
-	var args []string
-
-	copy(args, t.Args)
-
-	if t.AppendFilename {
-		args = append(args, filename)
-	}
-
-	return &Job{
-		commands: t.Commands,
-		args:     args,
-		dir:      chdir,
-	}
-}
-
-type JobRunner struct {
-	builder *JobBuilder
-
-	lastJob *Job
-
-	mu     sync.Mutex
-	ctx    context.Context
-	cancel func()
-}
-
-func (r *JobRunner) Run(filename string) (duration time.Duration, err error) {
-	r.mu.Lock()
-
-	if r.ctx != nil {
-		logger.Warnln("Canceling previous context")
-		r.cancel()
-		r.ctx = nil
-		r.cancel = nil
-	}
-	if r.lastJob != nil {
-		logger.Infof("Stopping job: %v", r.lastJob)
-		if err := r.lastJob.StopAndWait(); err != nil {
-			logger.Errorf("Failed to stop job. error=%v", err)
-		}
-	}
-
-	// allocate a new context
-	r.ctx, r.cancel = context.WithCancel(context.Background())
-
-	var ctx = r.ctx
-	var job = r.builder.Create(filename)
-
-	r.lastJob = job
-	r.mu.Unlock()
-
-	logger.Infof("Starting: commands=%v args=%v", job.commands, job.args)
-	var now = time.Now()
-	err = job.Run(ctx)
-	duration = time.Now().Sub(now)
-	if err != nil {
-		return duration, err
-	}
-
-	return duration, nil
-}
 
 func main() {
 	dirArgs, cmdArgs := options.Parse(os.Args)
