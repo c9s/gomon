@@ -1,7 +1,6 @@
 package main
 
 import (
-	"context"
 	"fmt"
 	"log"
 	"os"
@@ -135,19 +134,18 @@ func main() {
 
 	var wasFailed bool = false
 
-	var jobBuilder = &JobBuilder{
-		// Job template arguments
-		Commands:        cmds.commands,
-		Args:            []string{},
-		AppendFilename:  options.Bool("F"),
-		ChangeDirectory: options.Bool("chdir"),
-	}
-	var taskRunner = &JobRunner{
-		builder: jobBuilder,
+	var jobRunner = &JobRunner{
+		builder: &JobBuilder{
+			// Job template arguments
+			Commands:        cmds.commands,
+			Args:            []string{},
+			AppendFilename:  options.Bool("F"),
+			ChangeDirectory: options.Bool("chdir"),
+		},
 	}
 
 	var runCommand = func(filename string) (duration time.Duration, err error) {
-		return taskRunner.Run(filename)
+		return jobRunner.Run(filename)
 	}
 
 	var patternStr string = options.String("m")
