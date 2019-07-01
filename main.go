@@ -107,8 +107,6 @@ func main() {
 		notifier = notify.NewTextNotifier()
 	}
 
-	logger.Infoln("Watching", dirArgs, "for", cmds)
-
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		logger.Error(err)
@@ -116,22 +114,28 @@ func main() {
 	}
 	defer watcher.Close()
 
+	var numdir = 0
 	for _, dir := range dirArgs {
 		if options.Bool("R") {
 			subfolders := Subfolders(dir)
 			for _, f := range subfolders {
 				err = watcher.Add(f)
+				numdir++
 				if err != nil {
 					log.Fatal(err)
 				}
 			}
 		} else {
 			err = watcher.Add(dir)
+			numdir++
 			if err != nil {
 				log.Fatal(err)
 			}
 		}
 	}
+
+	logger.Infof("Watching %v for commands %v.", dirArgs, cmds)
+	logger.Infof("%d directories watched", numdir)
 
 	var jobRunner = &JobRunner{
 		builder: &JobBuilder{
