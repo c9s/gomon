@@ -1,10 +1,10 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"log"
 	"os"
-	"path/filepath"
 	"regexp"
 	"runtime"
 	"sync"
@@ -20,43 +20,6 @@ import (
 var versionStr = "0.1.0"
 
 var notifier notify.Notifier = nil
-
-type FileBasedTaskRunner struct {
-	Runner         *CommandRunner
-	Commands       []Command
-	AppendFilename bool
-	Chdir          bool
-}
-
-func (r *FileBasedTaskRunner) Run(filename string) (duration time.Duration, err error) {
-	if r.Runner.IsRunning() {
-		logger.Warnln("Aborting the current running task...")
-		if err := r.Runner.Stop(); err != nil {
-			logger.Errorf("Failed to stop the runner: %s", err.Error())
-		}
-	}
-
-	var chdir = ""
-	if r.Chdir {
-		chdir = filepath.Dir(filename)
-	}
-
-	var args []string
-	if r.AppendFilename {
-		args = append(args, filename)
-	}
-
-	logger.Infof("Starting: chdir=%s commands=%v args=%v", chdir, r.Commands, args)
-
-	var now = time.Now()
-	err = r.Runner.Run(r.Commands, args, chdir)
-	duration = time.Now().Sub(now)
-	if err != nil {
-		return duration, err
-	}
-
-	return duration, nil
-}
 
 func main() {
 	dirArgs, cmdArgs := options.Parse(os.Args)
@@ -147,10 +110,11 @@ func main() {
 	logger.Infoln("Watching", dirArgs, "for", cmds)
 
 	watcher, err := fsnotify.NewWatcher()
-
 	if err != nil {
-		log.Fatal(err)
+		logger.Error(err)
+		return
 	}
+	defer watcher.Close()
 
 	for _, dir := range dirArgs {
 		if options.Bool("R") {
@@ -169,17 +133,14 @@ func main() {
 		}
 	}
 
-	var wasFailed bool = false
-	var runner = &CommandRunner{}
-	var taskRunner = &FileBasedTaskRunner{
-		Runner:         runner,
-		Commands:       cmds.commands,
-		AppendFilename: options.Bool("F"),
-		Chdir:          options.Bool("chdir"),
-	}
-
-	var runCommand = func(filename string) (duration time.Duration, err error) {
-		return taskRunner.Run(filename)
+	var jobRunner = &JobRunner{
+		builder: &JobBuilder{
+			// Job template arguments
+			Commands:        cmds.commands,
+			Args:            []string{},
+			AppendFilename:  options.Bool("F"),
+			ChangeDirectory: options.Bool("chdir"),
+		},
 	}
 
 	var patternStr string = options.String("m")
@@ -233,21 +194,11 @@ func main() {
 					var err error
 					var duration time.Duration
 
-					duration, err = runCommand(filename)
+					duration, err = jobRunner.RunAndNotify(context.Background(), filename, alwaysNotify)
 					if err != nil {
-						wasFailed = true
-						logger.Errorln("Task Failed:", err.Error())
-
-						notifier.NotifyFailed("Build Failed", err.Error())
+						logger.Errorf("Build failed: %v", err.Error())
 					} else {
-						logger.Infoln("Task Completed:", duration)
-
-						if wasFailed {
-							wasFailed = false
-							notifier.NotifyFixed("Build Fixed", fmt.Sprintf("Spent: %s", duration))
-						} else if alwaysNotify {
-							notifier.NotifySucceeded("Build Succeeded", fmt.Sprintf("Spent: %s", duration))
-						}
+						logger.Infoln("Successful build:", duration)
 					}
 				})
 				once = sync.Once{}
@@ -258,5 +209,4 @@ func main() {
 		}
 	}
 
-	watcher.Close()
 }
