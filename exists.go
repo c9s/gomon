@@ -6,7 +6,8 @@ import (
 	"path/filepath"
 )
 
-func FileExists(path string) (bool, error) {
+//
+func fileExists(path string) (bool, error) {
 	file, err := os.Open(path) // For read access.
 	if err != nil {
 		return false, err
@@ -22,11 +23,11 @@ func FileExists(path string) (bool, error) {
 	return true, nil
 }
 
-func IsDir(path string) (bool, error) {
-	return DirExists(path)
+func isDir(path string) (bool, error) {
+	return dirExists(path)
 }
 
-func DirExists(path string) (bool, error) {
+func dirExists(path string) (bool, error) {
 	file, err := os.Open(path) // For read access.
 	if err != nil {
 		return false, err
@@ -42,7 +43,7 @@ func DirExists(path string) (bool, error) {
 	return stat.IsDir(), nil
 }
 
-func Subfolders(path string) (paths []string) {
+func subfolders(path string) (paths []string) {
 	filepath.Walk(path, func(newPath string, info os.FileInfo, err error) error {
 		if err != nil {
 			return err
@@ -54,19 +55,18 @@ func Subfolders(path string) (paths []string) {
 			hidden := filepath.HasPrefix(name, ".") && name != "." && name != ".."
 			if hidden {
 				return filepath.SkipDir
-			} else {
-				paths = append(paths, newPath)
 			}
+			paths = append(paths, newPath)
 		}
 		return nil
 	})
 	return paths
 }
 
-func FilterExistPaths(paths []string) []string {
+func filterExistPaths(paths []string) []string {
 	var result []string
 	for _, path := range paths {
-		if exists, _ := FileExists(path); exists {
+		if exists, _ := fileExists(path); exists {
 			result = append(result, path)
 		} else {
 			log.Printf("Invalid path: '%v'", path)

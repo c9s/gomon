@@ -9,6 +9,7 @@ import (
 	"github.com/c9s/gomon/logger"
 )
 
+// JobRunner is
 type JobRunner struct {
 	builder *JobBuilder
 
@@ -20,6 +21,7 @@ type JobRunner struct {
 	cancel func()
 }
 
+// RunAndNotify spawn the Job and show notification of result
 func (r *JobRunner) RunAndNotify(ctx context.Context, filename string, alwaysNotify bool) (duration time.Duration, err error) {
 	duration, err = r.Run(ctx, filename)
 
@@ -43,6 +45,7 @@ func (r *JobRunner) RunAndNotify(ctx context.Context, filename string, alwaysNot
 	return
 }
 
+// Run spawn the Job with filename
 func (r *JobRunner) Run(basectx context.Context, filename string) (duration time.Duration, err error) {
 	r.mu.Lock()
 

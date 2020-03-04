@@ -5,14 +5,17 @@ import (
 	"strings"
 )
 
+// Option is
 type Option struct {
 	flag        string
 	value       interface{}
 	description string
 }
 
+// Options is
 type Options []*Option
 
+// NewOptions return new Options
 func NewOptions() Options {
 	return Options{
 		{"h", false, "Show Help"},
@@ -39,6 +42,7 @@ func NewOptions() Options {
 
 var options = NewOptions()
 
+// Has return whether the flag is specified
 func (options Options) Has(flag string) bool {
 	for _, option := range options {
 		if option.flag == flag {
@@ -48,6 +52,7 @@ func (options Options) Has(flag string) bool {
 	return false
 }
 
+// Get return the value of the flag specified
 func (options Options) Get(flag string) *Option {
 	for _, option := range options {
 		if option.flag == flag {
@@ -57,6 +62,7 @@ func (options Options) Get(flag string) *Option {
 	return nil
 }
 
+// String return string value of the flag specified
 func (options Options) String(flag string) string {
 	for _, option := range options {
 		if option.flag == flag {
@@ -67,6 +73,7 @@ func (options Options) String(flag string) string {
 	return ""
 }
 
+// Bool return bool value of the flag specified
 func (options Options) Bool(flag string) bool {
 	for _, option := range options {
 		if option.flag == flag {
@@ -77,6 +84,7 @@ func (options Options) Bool(flag string) bool {
 	return false
 }
 
+// IsBool return whether the flag is boolean type
 func (options Options) IsBool(flag string) bool {
 	for _, option := range options {
 		if option.flag == flag {
@@ -87,6 +95,7 @@ func (options Options) IsBool(flag string) bool {
 	return false
 }
 
+// Parse parse the command-arguments
 func (options Options) Parse(args []string) (dirArgs []string, cmdArgs []string) {
 	dirArgs = make([]string, 0)
 	cmdArgs = make([]string, 0)

@@ -4,6 +4,7 @@ import (
 	"path/filepath"
 )
 
+// JobBuilder is
 type JobBuilder struct {
 	// Job template arguments
 	Commands []Command
@@ -14,6 +15,7 @@ type JobBuilder struct {
 	AppendFilename  bool
 }
 
+// Create create Job from filename
 func (t *JobBuilder) Create(filename string) *Job {
 	var chdir = ""
 	if t.ChangeDirectory {

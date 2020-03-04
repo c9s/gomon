@@ -7,6 +7,7 @@ import (
 	"sync"
 )
 
+// Job is
 type Job struct {
 	commands []Command
 	args     []string
@@ -17,11 +18,13 @@ type Job struct {
 	mu          sync.Mutex
 }
 
+// IsRunning return whether the process still alive
 func (job *Job) IsRunning() bool {
 	var task = job.currentTask
 	return task != nil && task.ProcessState != nil && !task.ProcessState.Exited()
 }
 
+// Run spawn the command with context
 func (job *Job) Run(ctx context.Context) error {
 	for _, cmd := range job.commands {
 		job.mu.Lock()
@@ -47,6 +50,7 @@ func (job *Job) Run(ctx context.Context) error {
 	return nil
 }
 
+// StopAndWait request to stop the Job and want the process exited
 func (job *Job) StopAndWait() (err error) {
 	job.mu.Lock()
 	defer job.mu.Unlock()
