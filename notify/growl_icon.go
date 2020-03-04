@@ -35,7 +35,7 @@ func getIconDir() string {
 	return iconDirectory
 }
 
-func FileExists(path string) (bool, error) {
+func fileExists(path string) (bool, error) {
 	file, err := os.Open(path) // For read access.
 	if err != nil {
 		return false, err
@@ -53,7 +53,7 @@ func FileExists(path string) (bool, error) {
 
 func icon(name string) string {
 	f := filepath.Join(getIconDir(), name+".png")
-	if _, err := FileExists(f); err == nil {
+	if _, err := fileExists(f); err == nil {
 		return f
 	}
 	return ""
@@ -74,6 +74,7 @@ func download(target, path string) {
 	fmt.Printf("Downloaded %s into %s\n", target, path)
 }
 
+// InstallGrowlIcons install icon images for Growl Notification
 func InstallGrowlIcons() {
 	dir := getIconDir()
 	_, err := os.Stat(dir)

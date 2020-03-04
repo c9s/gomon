@@ -2,6 +2,7 @@ package getopt
 
 import "strings"
 
+// Option is
 type Option struct {
 	LongFlag  string
 	ShortFlag string
@@ -9,8 +10,10 @@ type Option struct {
 	Value     interface{}
 }
 
+// Options is
 type Options *[]Option
 
+// Opt return new Option constructed with spec, val and usage
 func Opt(spec string, val interface{}, usage string) *Option {
 	opt := Option{}
 	parts := strings.SplitN(spec, "|", 2)

@@ -12,10 +12,12 @@ import (
 //	cmd.Stderr = io.MultiWriter(os.Stderr, &buf)
 //	err := cmd.Run()
 
+// GNTPNotifier is
 type GNTPNotifier struct {
 	*gntp.Client
 }
 
+// NewGNTPNotifier return new instance of GNTPNotifier
 func NewGNTPNotifier(server string, appName string) *GNTPNotifier {
 	client := gntp.NewClient()
 	// defualt GNTP Server
@@ -33,6 +35,7 @@ func NewGNTPNotifier(server string, appName string) *GNTPNotifier {
 	return &GNTPNotifier{client}
 }
 
+// NotifySucceeded show notification of succeeded
 func (n *GNTPNotifier) NotifySucceeded(title, subtitle string) error {
 	return n.Client.Notify(&gntp.Message{
 		Event: "succeeded",
@@ -42,6 +45,7 @@ func (n *GNTPNotifier) NotifySucceeded(title, subtitle string) error {
 	})
 }
 
+// NotifyFixed show notification of fixed
 func (n *GNTPNotifier) NotifyFixed(title, subtitle string) error {
 	return n.Client.Notify(&gntp.Message{
 		Event: "succeeded",
@@ -51,6 +55,7 @@ func (n *GNTPNotifier) NotifyFixed(title, subtitle string) error {
 	})
 }
 
+// NotifyFailed show notification of failed
 func (n *GNTPNotifier) NotifyFailed(title, subtitle string) error {
 	return n.Client.Notify(&gntp.Message{
 		Event: "failed",

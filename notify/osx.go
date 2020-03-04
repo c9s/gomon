@@ -3,7 +3,7 @@
 package notify
 
 import (
-	"github.com/deckarep/gosx-notifier"
+	gosxnotifier "github.com/deckarep/gosx-notifier"
 )
 
 type OSXNotifier struct{}
@@ -12,6 +12,7 @@ func NewOSXNotifier() *OSXNotifier {
 	return &OSXNotifier{}
 }
 
+// NotifySucceeded show notification of succeeded
 func (n *OSXNotifier) NotifySucceeded(title, subtitle string) error {
 	note := gosxnotifier.NewNotification("Build Succeeded") // message body
 	note.Title = title
@@ -20,6 +21,7 @@ func (n *OSXNotifier) NotifySucceeded(title, subtitle string) error {
 	return note.Push()
 }
 
+// NotifyFixed show notification of fixed
 func (n *OSXNotifier) NotifyFailed(title, subtitle string) error {
 	note := gosxnotifier.NewNotification("Build Failed") // message body
 	note.Title = title
@@ -28,6 +30,7 @@ func (n *OSXNotifier) NotifyFailed(title, subtitle string) error {
 	return note.Push()
 }
 
+// NotifyFailed show notification of failed
 func (n *OSXNotifier) NotifyFixed(title, subtitle string) error {
 	note := gosxnotifier.NewNotification("Build Fixed") // message body
 	note.Title = title
