@@ -1,7 +1,7 @@
 gomon
 =====
 
-![CI](https://github.com/c9s/gomon/workflows/CI/badge.svg)
+[![CI Status](https://github.com/c9s/gomon/workflows/CI/badge.svg)](https://github.com/c9s/gomon/actions)
 
 go source file monitor, which restarts/rebuilds your go package automatically
 while you are changing it.
