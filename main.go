@@ -17,7 +17,11 @@ import (
 	"github.com/fsnotify/fsnotify"
 )
 
-var versionStr = "0.1.0"
+const (
+	name     = "gomon"
+	version  = "0.1.1"
+	revision = "HEAD"
+)
 
 var notifier notify.Notifier = nil
 
@@ -40,7 +44,7 @@ func main() {
 		os.Exit(0)
 	}
 	if options.Bool("v") {
-		fmt.Printf("gomon %s\n", versionStr)
+		fmt.Printf("gomon %s\n", version)
 		os.Exit(0)
 	}
 
