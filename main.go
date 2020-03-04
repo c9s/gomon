@@ -27,7 +27,7 @@ var notifier notify.Notifier = nil
 
 func main() {
 	dirArgs, cmdArgs := options.Parse(os.Args)
-	dirArgs = FilterExistPaths(dirArgs)
+	dirArgs = filterExistPaths(dirArgs)
 
 	var matchAll = false
 	var alwaysNotify = false
@@ -124,7 +124,7 @@ func main() {
 	var numdir = 0
 	for _, dir := range dirArgs {
 		if options.Bool("R") {
-			subfolders := Subfolders(dir)
+			subfolders := subfolders(dir)
 			for _, f := range subfolders {
 				err = watcher.Add(f)
 				numdir++
