@@ -20,6 +20,7 @@ func NewOptions() Options {
 		{"t", false, "Run `go test`"},
 		{"i", false, "Run `go install`"},
 		{"f", false, "Run `go fmt`"},
+		{"l", false, "Run `golint`"},
 		{"m", `\.(go|c|h)$`, "Pattern to match"},
 		{"r", false, "Run `go run`"},
 		{"x", false, "Show verbose command"},

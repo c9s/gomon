@@ -8,4 +8,5 @@ var goCommands = map[string][]string{
 	"fix":     []string{"go", "fix"},
 	"run":     []string{"go", "run"},
 	"vet":     []string{"go", "vet"},
+	"lint":    []string{"golint"},
 }

@@ -61,6 +61,9 @@ func main() {
 	if options.Bool("t") {
 		cmds.Add(goCommands["test"])
 	}
+	if options.Bool("l") {
+		cmds.Add(goCommands["lint"])
+	}
 	if options.Bool("b") {
 		cmds.Add(goCommands["build"])
 	}
