@@ -7,8 +7,6 @@ import (
 	"os"
 	"regexp"
 	"runtime"
-	"sync"
-	"time"
 
 	"github.com/sirupsen/logrus"
 
@@ -161,8 +159,10 @@ func main() {
 	}
 
 	var pattern = regexp.MustCompile(patternStr)
-	var once sync.Once
 	var ctx = context.Background()
+
+	delay := NewDelay(jobRunner, alwaysNotify)
+	go delay.Run()
 
 	for {
 		select {
@@ -201,24 +201,7 @@ func main() {
 				}
 			}
 
-			// TODO: time.ParseDuration
-			// go fmt vim plugin will rename the file and then create a new file
-			// In order to handle the batch operation, a delay is needed.
-			go func(filename string) {
-				once.Do(func() {
-					// duration to avoid to run commands frequency at once
-					<-time.After(500 * time.Millisecond)
-
-					var duration, err = jobRunner.RunAndNotify(context.Background(), filename, alwaysNotify)
-					if err != nil {
-						logger.Errorf("Build failed: %v", err.Error())
-					} else {
-						logger.Infoln("Successful build:", duration)
-					}
-				})
-				once = sync.Once{}
-			}(e.Name)
-
+			delay.Trigger(e.Name)
 		}
 	}
 

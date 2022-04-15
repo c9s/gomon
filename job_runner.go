@@ -30,15 +30,15 @@ func (r *JobRunner) RunAndNotify(ctx context.Context, filename string, alwaysNot
 		r.previouslyFailed = true
 		r.mu.Unlock()
 
-		notifier.NotifyFailed("Build failed", err.Error())
+		notifier.NotifyFailed("Command failed", err.Error())
 	} else {
 		r.mu.Lock()
 		if r.previouslyFailed {
 			r.previouslyFailed = false
 
-			notifier.NotifyFixed("Build fixed", fmt.Sprintf("Spent: %s", duration))
+			notifier.NotifyFixed("Command recovered from prior failure", fmt.Sprintf("Spent: %s", duration))
 		} else if alwaysNotify {
-			notifier.NotifySucceeded("Build succeeded", fmt.Sprintf("Spent: %s", duration))
+			notifier.NotifySucceeded("Command succeeded", fmt.Sprintf("Spent: %s", duration))
 		}
 		r.mu.Unlock()
 	}
